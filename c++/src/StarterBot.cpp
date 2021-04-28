@@ -1,6 +1,7 @@
 #include "StarterBot.h"
 #include "DrawTools.h"
 #include "MapTools.h"
+#include "InformationManager.h"
 
 StarterBot::StarterBot()
 {
@@ -32,6 +33,8 @@ void StarterBot::onFrame()
 {
     // Update our MapTools information
     MapTools::Instance().onFrame();
+
+    InformationManager::Instance().onFrame();
 
     // Draw unit health bars, which brood war unfortunately does not do
     DrawTools::DrawUnitHealthBars();
