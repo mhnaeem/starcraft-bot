@@ -119,8 +119,13 @@ void DrawTools::DrawCircleAroundStart()
 
     if (resourceDepot)
     {
-        BWAPI::Broodwar->drawCircleMap(resourceDepot->getPosition(), 600, BWAPI::Colors::Green, false);
+        DrawTools::DrawCircleAroundLocation(resourceDepot->getPosition());
     }
+}
+
+void DrawTools::DrawCircleAroundLocation(BWAPI::Position center)
+{
+    BWAPI::Broodwar->drawCircleMap(center, 600, BWAPI::Colors::Green, false);
 }
 
 void DrawTools::DrawAllRegions()

@@ -10,4 +10,5 @@ namespace DrawTools
     void DrawHealthBar(BWAPI::Unit unit, double ratio, BWAPI::Color color, int yOffset);
     void DrawAllRegions();
     void DrawCircleAroundStart();
+    void DrawCircleAroundLocation(BWAPI::Position center);
 }
