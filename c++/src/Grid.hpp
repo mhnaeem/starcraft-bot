@@ -8,7 +8,7 @@ class Grid
     size_t m_width = 0;
     size_t m_height = 0;
 
-    std::vector<std::vector<T>> m_grid;
+    std::vector<T> m_grid;
 
 public:
 
@@ -17,24 +17,24 @@ public:
     Grid(size_t width, size_t height, T val)
         : m_width(width)
         , m_height(height)
-        , m_grid(width, std::vector<T>(height, val))
+        , m_grid(width* height, val)
     {
 
     }
 
-    inline T & get(size_t x, size_t y)
+    inline T& get(size_t x, size_t y)
     {
-        return m_grid[x][y];
+        return m_grid[(y * m_width) + x];
     }
 
-    inline const T & get(size_t x, size_t y) const
+    inline const T& get(size_t x, size_t y) const
     {
-        return m_grid[x][y];
+        return m_grid[(y * m_width) + x];
     }
 
     inline void set(size_t x, size_t y, T val)
     {
-        m_grid[x][y] = val;
+        m_grid[(y * m_width) + x] = val;
     }
 
     inline size_t width() const
