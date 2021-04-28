@@ -104,3 +104,37 @@ void DrawTools::DrawHealthBar(BWAPI::Unit unit, double ratio, BWAPI::Color color
         BWAPI::Broodwar->drawLineMap(BWAPI::Position(i, hpTop), BWAPI::Position(i, hpBottom), BWAPI::Colors::Black);
     }
 }
+
+void DrawTools::DrawCircleAroundStart()
+{
+    BWAPI::Unit resourceDepot = nullptr;
+
+    for (auto unit : BWAPI::Broodwar->self()->getUnits())
+    {
+        if (unit && unit->getType() == BWAPI::Broodwar->self()->getRace().getResourceDepot())
+        {
+            resourceDepot = unit;
+        }
+    }
+
+    if (resourceDepot)
+    {
+        BWAPI::Broodwar->drawCircleMap(resourceDepot->getPosition(), 600, BWAPI::Colors::Green, false);
+    }
+}
+
+void DrawTools::DrawAllRegions()
+{
+    for (auto region : BWAPI::Broodwar->getAllRegions())
+    {
+        BWAPI::Broodwar->drawBoxMap(region->getBoundsLeft(), region->getBoundsTop(), region->getBoundsRight(), region->getBoundsBottom(), BWAPI::Colors::Red);
+
+
+        int filenameIndex = region->getDefensePriority();
+        std::stringstream temp_str;
+        temp_str << (filenameIndex);
+        std::string str = temp_str.str();
+        const char* cstr2 = str.c_str();
+        BWAPI::Broodwar->drawTextMap(region->getCenter(), cstr2);
+    }
+}

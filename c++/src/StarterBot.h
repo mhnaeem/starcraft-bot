@@ -6,6 +6,7 @@
 
 class StarterBot
 {
+	bool m_debugDraw = false;
 
 public:
 

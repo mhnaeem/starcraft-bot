@@ -34,8 +34,13 @@ void StarterBot::onFrame()
     MapTools::Instance().onFrame();
 
     // Draw unit health bars, which brood war unfortunately does not do
-    
     DrawTools::DrawUnitHealthBars();
+
+    if (m_debugDraw)
+    {
+        DrawTools::DrawAllRegions();
+        DrawTools::DrawCircleAroundStart();
+    }
 }
 
 // Draw some relevent information to the screen to help us debug the bot
@@ -64,6 +69,10 @@ void StarterBot::onSendText(std::string text)
     if (text == "/map")
     {
         MapTools::Instance().toggleDraw();
+    }
+    else if (text == "/debugDraw")
+    {
+        m_debugDraw = !m_debugDraw;
     }
 }
 
