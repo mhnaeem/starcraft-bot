@@ -2,6 +2,8 @@
 #include "DrawTools.h"
 #include "MapTools.h"
 #include "InformationManager.h"
+#include "BaseManager.h"
+#include <BWAPI.h>
 
 StarterBot::StarterBot()
 {
@@ -20,6 +22,20 @@ void StarterBot::onStart()
 
     // Call MapTools OnStart
     MapTools::Instance().onStart();
+
+
+    BWAPI::Unit resourceDepot = nullptr;
+    for (auto unit : BWAPI::Broodwar->self()->getUnits())
+    {
+        if (unit && unit->getType() == BWAPI::Broodwar->self()->getRace().getResourceDepot())
+        {
+            resourceDepot = unit;
+        }
+    }
+    if (resourceDepot)
+    {
+        BaseManager originalBase(resourceDepot->getPosition());
+    }
 }
 
 // Called whenever the game ends and tells you if you won or not
