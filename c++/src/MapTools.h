@@ -20,10 +20,15 @@ class MapTools
     bool canWalk(int tileX, int tileY) const;
     void printMap() const;
 
+    MapTools();
 
 public:
 
-    MapTools();
+    static MapTools& Instance()
+    {
+        static MapTools instance;
+        return instance;
+    }
 
     void    onStart();
     void    onFrame();

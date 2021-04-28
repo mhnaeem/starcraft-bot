@@ -6,7 +6,6 @@
 
 class StarterBot
 {
-    MapTools m_mapTools;
 
 public:
 

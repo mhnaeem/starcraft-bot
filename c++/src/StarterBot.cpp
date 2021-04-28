@@ -18,7 +18,7 @@ void StarterBot::onStart()
     BWAPI::Broodwar->enableFlag(BWAPI::Flag::UserInput);
 
     // Call MapTools OnStart
-    m_mapTools.onStart();
+    MapTools::Instance().onStart();
 }
 
 // Called whenever the game ends and tells you if you won or not
@@ -31,7 +31,7 @@ void StarterBot::onEnd(bool isWinner)
 void StarterBot::onFrame()
 {
     // Update our MapTools information
-    m_mapTools.onFrame();
+    MapTools::Instance().onFrame();
 
     // Draw unit health bars, which brood war unfortunately does not do
     
@@ -41,7 +41,6 @@ void StarterBot::onFrame()
 // Draw some relevent information to the screen to help us debug the bot
 void StarterBot::drawDebugInformation()
 {
-    BWAPI::Broodwar->drawTextScreen(BWAPI::Position(10, 10), "Hello, World!\n");
     DrawTools::DrawUnitCommands();
     DrawTools::DrawUnitBoundingBoxes();
 }
@@ -64,7 +63,7 @@ void StarterBot::onSendText(std::string text)
 { 
     if (text == "/map")
     {
-        m_mapTools.toggleDraw();
+        MapTools::Instance().toggleDraw();
     }
 }
 
