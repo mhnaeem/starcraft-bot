@@ -1,12 +1,13 @@
 #pragma once
 
 #include "MapTools.h"
-
 #include <BWAPI.h>
+#include "GameManager.h"
 
 class StarterBot
 {
-	bool m_debugDraw = false;
+	bool            m_debugDraw = false;
+	GameManager     m_gameManager;
 
 public:
 

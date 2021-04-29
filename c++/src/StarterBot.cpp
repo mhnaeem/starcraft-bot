@@ -7,7 +7,7 @@
 
 StarterBot::StarterBot()
 {
-    
+    m_gameManager = GameManager();
 }
 
 // Called when the bot starts!
@@ -23,19 +23,7 @@ void StarterBot::onStart()
     // Call MapTools OnStart
     MapTools::Instance().onStart();
 
-
-    BWAPI::Unit resourceDepot = nullptr;
-    for (auto unit : BWAPI::Broodwar->self()->getUnits())
-    {
-        if (unit && unit->getType() == BWAPI::Broodwar->self()->getRace().getResourceDepot())
-        {
-            resourceDepot = unit;
-        }
-    }
-    if (resourceDepot)
-    {
-        BaseManager originalBase(resourceDepot->getPosition());
-    }
+    m_gameManager.onStart();
 }
 
 // Called whenever the game ends and tells you if you won or not
@@ -60,6 +48,8 @@ void StarterBot::onFrame()
         DrawTools::DrawAllRegions();
         DrawTools::DrawCircleAroundStart();
     }
+
+    m_gameManager.onFrame();
 }
 
 // Draw some relevent information to the screen to help us debug the bot
