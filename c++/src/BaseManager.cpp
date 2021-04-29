@@ -9,8 +9,20 @@
 BaseManager::BaseManager(BWAPI::Position baseLocation)
 {
 	m_baseLocation = baseLocation;
+	m_regions = std::vector<BWAPI::Region>();
+	m_chokePoints = std::vector<BWAPI::Region>();
+	m_units = std::set<BWAPI::Unit>();
+
 	updateRegions();
 	updateChokePoints();
+	updateUnits();
+}
+
+void BaseManager::onFrame()
+{
+	updateRegions();
+	updateChokePoints();
+	updateUnits();
 }
 
 const std::vector<BWAPI::Region>& BaseManager::getRegions() const
@@ -23,9 +35,14 @@ const std::vector<BWAPI::Region>& BaseManager::getChokePoints() const
 	return m_chokePoints;
 }
 
+const std::set<BWAPI::Unit>& BaseManager::getUnits() const
+{
+	return m_units;
+}
+
 void BaseManager::updateRegions()
 {
-	m_regions = std::vector<BWAPI::Region>();
+	m_regions.clear();
 	BWAPI::Region centerRegion = BWAPI::Broodwar->getRegionAt(m_baseLocation.x, m_baseLocation.y);
 
 	if (!centerRegion) { return; }
@@ -61,13 +78,35 @@ void BaseManager::updateRegions()
 
 void BaseManager::updateChokePoints()
 {
-	m_chokePoints = std::vector<BWAPI::Region>();
+	m_chokePoints.clear();
 
 	for (auto region : m_regions)
 	{
 		if (region && region->getDefensePriority() == 2)
 		{
 			m_chokePoints.push_back(region);
+		}
+	}
+}
+
+void BaseManager::updateUnits()
+{
+	m_units.clear();
+	
+	if (m_regions.empty()) { return; }
+	
+	for (auto region : m_regions)
+	{
+		if (region)
+		{
+			BWAPI::Unitset& units = region->getUnits();
+			for (auto unit : units)
+			{
+				if (m_units.find(unit) == m_units.end())
+				{
+					m_units.insert(unit);
+				}
+			}
 		}
 	}
 }
