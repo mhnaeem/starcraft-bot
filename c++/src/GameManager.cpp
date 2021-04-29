@@ -1,35 +1,39 @@
 #pragma once
 
 #include "GameManager.h"
+#include "UnitManager.h"
+#include "InformationManager.h"
 
 GameManager::GameManager()
 {
-	m_bases = std::vector<BaseManager>();
+
 }
 
 void GameManager::onStart()
 {
-    m_bases.clear();
-
     BWAPI::Unit resourceDepot = nullptr;
     for (auto unit : BWAPI::Broodwar->self()->getUnits())
     {
-        if (unit && unit->getType() == BWAPI::Broodwar->self()->getRace().getResourceDepot())
+        if (unit && unit->getType().isResourceDepot())
         {
             resourceDepot = unit;
+            break;
         }
     }
     if (resourceDepot)
     {
         BaseManager originalBase(resourceDepot->getPosition());
-        m_bases.push_back(originalBase);
+        InformationManager::Instance().addBase(originalBase);
     }
+
+    UnitManager::Instance().onStart();
 }
 
 void GameManager::onFrame()
 {
-    for (auto& base : m_bases)
+    for (auto base : InformationManager::Instance().getBases())
     {
         base.onFrame();
     }
+    UnitManager::Instance().onFrame();
 }

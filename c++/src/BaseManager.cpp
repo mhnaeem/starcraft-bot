@@ -5,6 +5,7 @@
 #include <BWAPI.h>
 #include <vector>
 #include <algorithm>
+#include "SmartUtils.h"
 
 BaseManager::BaseManager(BWAPI::Position baseLocation)
 {
@@ -12,10 +13,10 @@ BaseManager::BaseManager(BWAPI::Position baseLocation)
 	m_regions = std::vector<BWAPI::Region>();
 	m_chokePoints = std::vector<BWAPI::Region>();
 	m_units = std::set<BWAPI::Unit>();
+	m_minerals = SmartUtils::GetClosestUnitTo(baseLocation, BWAPI::Broodwar->getMinerals());
+	m_gas = SmartUtils::GetClosestUnitTo(baseLocation, BWAPI::Broodwar->getGeysers());
 
-	updateRegions();
-	updateChokePoints();
-	updateUnits();
+	onFrame();
 }
 
 void BaseManager::onFrame()
@@ -38,6 +39,16 @@ const std::vector<BWAPI::Region>& BaseManager::getChokePoints() const
 const std::set<BWAPI::Unit>& BaseManager::getUnits() const
 {
 	return m_units;
+}
+
+const BWAPI::Unit& BaseManager::getMinerals() const
+{
+	return m_minerals;
+}
+
+const BWAPI::Unit& BaseManager::getGas() const
+{
+	return m_gas;
 }
 
 void BaseManager::updateRegions()

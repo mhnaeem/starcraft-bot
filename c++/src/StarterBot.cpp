@@ -22,6 +22,7 @@ void StarterBot::onStart()
 
     // Call MapTools OnStart
     MapTools::Instance().onStart();
+    InformationManager::Instance().onStart();
 
     m_gameManager.onStart();
 }

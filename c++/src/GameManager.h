@@ -6,7 +6,6 @@
 
 class GameManager
 {
-	std::vector<BaseManager>     m_bases;
 
 public:
 

@@ -1,13 +1,23 @@
+#pragma once
+
 #include "InformationManager.h"
+#include "MapTools.h"
+#include "BaseManager.h"
 
 InformationManager::InformationManager()
 {
+
+}
+
+void InformationManager::onStart()
+{
+	m_enemyPositions = std::vector<BWAPI::Position>();
+	m_bases = std::vector<BaseManager>();
 	InformationManager::onFrame();
 }
 
 void InformationManager::onFrame()
 {
-
 	InformationManager::parseUnitsInfo();
 
 	m_totalSupply = InformationManager::getTotalSupply(true);
@@ -20,6 +30,16 @@ void InformationManager::onFrame()
 const std::map<BWAPI::UnitType, int>& InformationManager::getUnitCountMap() const
 {
 	return m_unitCountMap;
+}
+
+const std::vector<BWAPI::Position>& InformationManager::getEnemyLocations() const
+{
+	return m_enemyPositions;
+}
+
+const std::vector<BaseManager>& InformationManager::getBases() const
+{
+	return m_bases;
 }
 
 const int InformationManager::usedSupply()
@@ -51,7 +71,6 @@ void InformationManager::parseUnitsInfo()
 	for (auto& unit : myUnits)
 	{
 		if (!unit || !unit->exists()) { continue; }
-
 		const BWAPI::UnitType type = unit->getType();
 
 		try
@@ -166,4 +185,17 @@ int InformationManager::getTotalSupply(bool inProgress)
 	}
 
 	return totalSupply / 2;
+}
+
+void InformationManager::addEnemyPosition(BWAPI::Position pos)
+{
+	if (pos && MapTools::Instance().isValidPosition(pos))
+	{
+		m_enemyPositions.push_back(pos);
+	}
+}
+
+void InformationManager::addBase(BaseManager base)
+{
+	m_bases.push_back(base);
 }
