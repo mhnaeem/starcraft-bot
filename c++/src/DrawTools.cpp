@@ -125,7 +125,7 @@ void DrawTools::DrawCircleAroundStart()
 
 void DrawTools::DrawCircleAroundLocation(BWAPI::Position center)
 {
-    BWAPI::Broodwar->drawCircleMap(center, 600, BWAPI::Colors::Green, false);
+    BWAPI::Broodwar->drawCircleMap(center, 1000, BWAPI::Colors::Green, false);
 }
 
 void DrawTools::DrawAllRegions()

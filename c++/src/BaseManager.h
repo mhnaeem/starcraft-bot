@@ -6,13 +6,17 @@
 
 class BaseManager
 {
-	int                        m_depthOfRegions = 3;
-	std::vector<BWAPI::Region> m_regions;
-	BWAPI::Position            m_baseLocation;
+	int                           m_depthOfRegions = 5;
+	std::vector<BWAPI::Region>    m_regions;
+	std::vector<BWAPI::Region>    m_chokePoints;
+	BWAPI::Position               m_baseLocation;
 
 public:
 
 	BaseManager(BWAPI::Position baseLocation);
 
-	const std::vector<BWAPI::Region>& BaseManager::getRegions() const;
+	void                                 updateRegions();
+	void                                 updateChokePoints();
+	const std::vector<BWAPI::Region>&    getRegions() const;
+	const std::vector<BWAPI::Region>&    getChokePoints() const;
 };
