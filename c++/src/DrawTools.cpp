@@ -134,10 +134,8 @@ void DrawTools::DrawAllRegions()
     {
         BWAPI::Broodwar->drawBoxMap(region->getBoundsLeft(), region->getBoundsTop(), region->getBoundsRight(), region->getBoundsBottom(), BWAPI::Colors::Red);
 
-
-        int filenameIndex = region->getDefensePriority();
         std::stringstream temp_str;
-        temp_str << (filenameIndex);
+        temp_str << "def: " << (region->getDefensePriority()) << ", id: " << (region->getID());
         std::string str = temp_str.str();
         const char* cstr2 = str.c_str();
         BWAPI::Broodwar->drawTextMap(region->getCenter(), cstr2);
