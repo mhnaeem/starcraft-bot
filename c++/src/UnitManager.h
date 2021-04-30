@@ -7,19 +7,22 @@
 enum UnitOrder
 {
 	COLLECT_MINERALS,
+	SCOUT_CONFUSION_MICRO,
 	SCOUT
 };
 
 class UnitManager
 {
 	// <unit id, UnitOrders>
-	std::map<BWAPI::Unit, UnitOrder>      m_unitOrders;
+	std::map<int, UnitOrder>		      m_unitOrders;
+	double								  m_scoutConfusionAngle = 30.0;
 
 	UnitManager();
 
 	void    setupScouts();
 	void    runOrders();
 	bool    performScouting(BWAPI::Unit scout);
+	void    performScoutConfusionMicro(BWAPI::Unit scout);
 	bool    collectMinerals(BWAPI::Unit worker);
 	void    idleWorkersCollectMinerals();
 

@@ -20,9 +20,39 @@ bool SmartUtils::SmartStop(BWAPI::Unit unit)
 	return unit->stop();
 }
 
+bool SmartUtils::SmartAttack(BWAPI::Unit unit, BWAPI::Position pos)
+{
+	if (!unit || !unit->exists() || !unit->isCompleted() || !unit->canAttack() || !pos || !MapTools::Instance().isValidPosition(pos))
+	{
+		return false;
+	}
+
+	if (unit->getLastCommand().getType() == BWAPI::UnitCommandTypes::Attack_Unit && unit->getLastCommand().getTargetPosition() == pos)
+	{
+		return true;
+	}
+
+	return unit->attack(pos);
+}
+
+bool SmartUtils::SmartAttack(BWAPI::Unit unit, BWAPI::Unit enemy)
+{
+	if (!unit || !unit->exists() || !unit->isCompleted() || !unit->canAttack() || !enemy || !enemy->exists())
+	{
+		return false;
+	}
+
+	if (unit->getLastCommand().getType() == BWAPI::UnitCommandTypes::Attack_Unit && unit->getLastCommand().getTarget() == enemy)
+	{
+		return true;
+	}
+
+	return unit->attack(enemy);
+}
+
 bool SmartUtils::SmartMove(BWAPI::Unit unit, BWAPI::Position pos)
 {
-	if (!unit || !unit->exists() || !unit->isCompleted() || !unit->canMove() || !pos || !MapTools::Instance().isValidPosition(pos))
+	if (!unit || !unit->exists() || !unit->isCompleted() || !unit->canMove() || !pos || !MapTools::Instance().isValidPosition(pos) || !MapTools::Instance().isWalkable(BWAPI::TilePosition(pos)))
 	{
 		return false;
 	}
@@ -89,4 +119,17 @@ bool SmartUtils::SmartRightClick(BWAPI::Unit unit, BWAPI::Unit target)
 
 	// If there's nothing left to stop us, right click!
 	return unit->rightClick(target);
+}
+
+bool SmartUtils::HasAttackingEnemies(BWAPI::Region region)
+{
+	for (auto unit : region->getUnits())
+	{
+		if (unit && unit->exists() && unit->canAttack())
+		{
+			return true;
+		}
+	}
+
+	return false;
 }

@@ -43,6 +43,7 @@ void StarterBot::onFrame()
 
     // Draw unit health bars, which brood war unfortunately does not do
     DrawTools::DrawUnitHealthBars();
+    drawDebugInformation();
 
     if (m_debugDraw)
     {
