@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include "SmartUtils.h"
+#include "BuildManager.h"
 
 BaseManager::BaseManager(BWAPI::Position baseLocation)
 {
@@ -51,6 +52,11 @@ const BWAPI::Unit& BaseManager::getMinerals() const
 const BWAPI::Unit& BaseManager::getGas() const
 {
 	return m_gas;
+}
+
+const BWAPI::Position& BaseManager::getLocation() const
+{
+	return m_baseLocation;
 }
 
 void BaseManager::updateRegions()
@@ -158,4 +164,9 @@ bool BaseManager::train(BWAPI::UnitType type)
 	if (!buildingNeeded || unitsReady != whatTrains.second) { return false; }
 
 	return SmartUtils::SmartTrain(type, buildingNeeded);
+}
+
+bool BaseManager::build(BWAPI::UnitType type)
+{
+	return BuildManager::Instance().Build(this, type);
 }

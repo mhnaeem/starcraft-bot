@@ -4,10 +4,11 @@
 #include <map>
 #include <vector>
 
-enum UnitOrder
+enum class UnitOrder
 {
 	COLLECT_MINERALS,
 	SCOUT_CONFUSION_MICRO,
+	BUILD,
 	SCOUT
 };
 
@@ -34,7 +35,8 @@ public:
 		return instance;
 	}
 
-	void    onFrame();
-	void    onStart();
-
+	void          onFrame();
+	void          onStart();
+	void          setOrder(int unitID, UnitOrder order);
+	UnitOrder     getOrder(int unitID);
 };

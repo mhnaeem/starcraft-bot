@@ -203,3 +203,13 @@ bool UnitManager::collectMinerals(BWAPI::Unit worker)
 
 	return SmartUtils::SmartRightClick(worker, mineralField);
 }
+
+void UnitManager::setOrder(int unitID, UnitOrder order)
+{
+	m_unitOrders[unitID] = order;
+}
+
+UnitOrder UnitManager::getOrder(int unitID)
+{
+	return m_unitOrders[unitID];
+}

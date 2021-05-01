@@ -27,8 +27,10 @@ public:
 	void                                 updateChokePoints();
 	void								 updateUnits();
 	bool								 train(BWAPI::UnitType type);
+	bool                                 build(BWAPI::UnitType type);
 	const BWAPI::Unit&                   getGas() const;
 	const BWAPI::Unit&					 getMinerals() const;
+	const BWAPI::Position&				 getLocation() const;
 	const std::vector<BWAPI::Region>&    getRegions() const;
 	const std::vector<BWAPI::Region>&    getChokePoints() const;
 	const std::set<BWAPI::Unit>&         getUnits() const;

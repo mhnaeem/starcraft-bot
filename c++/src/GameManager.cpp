@@ -2,6 +2,7 @@
 
 #include "GameManager.h"
 #include "UnitManager.h"
+#include "BuildManager.h"
 #include "InformationManager.h"
 
 GameManager::GameManager()
@@ -26,11 +27,13 @@ void GameManager::onStart()
         InformationManager::Instance().addBase(originalBase);
     }
 
+    BuildManager::Instance().onStart();
     UnitManager::Instance().onStart();
 }
 
 void GameManager::onFrame()
 {
+    BuildManager::Instance().onFrame();
     for (auto base : InformationManager::Instance().getBases())
     {
         base.onFrame();

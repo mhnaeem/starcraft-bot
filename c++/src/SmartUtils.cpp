@@ -5,7 +5,6 @@
 #include "SmartUtils.h"
 #include "InformationManager.h"
 
-
 bool SmartUtils::SmartStop(BWAPI::Unit unit)
 {
 	if (!unit || !unit->exists() || !unit->isCompleted() || !unit->canStop())
@@ -167,6 +166,10 @@ bool SmartUtils::SmartTrain(BWAPI::UnitType type)
 	if (!buildingNeeded || unitsReady != whatTrains.second) { return false; }
 
 	bool train = buildingNeeded->train(type);
+	if (train)
+	{
+		InformationManager::Instance().deductResources(type);
+	}
 	BWAPI::Broodwar->printf("%s %s", train ? "Started Training" : "Couldn't Train", type.getName().c_str());
 
 	return train;
@@ -181,6 +184,10 @@ bool SmartUtils::SmartTrain(BWAPI::UnitType type, BWAPI::Unit target)
 	if (!target->canTrain(type) || !InformationManager::Instance().hasEnoughResources(type)) { return false; }
 
 	bool train = target->train(type);
+	if (train)
+	{
+		InformationManager::Instance().deductResources(type);
+	}
 	BWAPI::Broodwar->printf("%s %s", train ? "Started Training" : "Couldn't Train", type.getName().c_str());
 
 	return train;
