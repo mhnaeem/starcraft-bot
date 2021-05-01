@@ -145,7 +145,7 @@ bool InformationManager::hasEnoughResources(BWAPI::UpgradeType type)
 
 int InformationManager::getMinerals(bool inProgress)
 {
-	int minerals = BWAPI::Broodwar->self()->gas();
+	int minerals = BWAPI::Broodwar->self()->minerals();
 
 	if (!inProgress) { return minerals; }
 
@@ -160,6 +160,7 @@ int InformationManager::getMinerals(bool inProgress)
 			command.getType() == BWAPI::UnitCommandTypes::Build ||
 			command.getType() == BWAPI::UnitCommandTypes::Build_Addon ||
 			command.getType() == BWAPI::UnitCommandTypes::Train ||
+			command.getType() == BWAPI::UnitCommandTypes::Upgrade ||
 			command.getType() == BWAPI::UnitCommandTypes::Research
 			)
 		{
@@ -188,6 +189,7 @@ int InformationManager::getGas(bool inProgress)
 			command.getType() == BWAPI::UnitCommandTypes::Build ||
 			command.getType() == BWAPI::UnitCommandTypes::Build_Addon ||
 			command.getType() == BWAPI::UnitCommandTypes::Train ||
+			command.getType() == BWAPI::UnitCommandTypes::Upgrade ||
 			command.getType() == BWAPI::UnitCommandTypes::Research
 		   )
 		{
