@@ -11,8 +11,10 @@ class InformationManager
     InformationManager();
 
     void parseUnitsInfo();
-    int  getUsedSupply();
+    int  getUsedSupply(bool inProgress = false);
     int  getTotalSupply(bool inProgress = false);
+    int  getMinerals(bool inProgress = false);
+    int  getGas(bool inProgress = false);
 
     std::map<BWAPI::UnitType, int>                        m_unitCountMap;
     std::map<BWAPI::UnitType, std::vector<BWAPI::Unit>>   m_unitsMap;

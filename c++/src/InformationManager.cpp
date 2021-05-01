@@ -21,10 +21,10 @@ void InformationManager::onFrame()
 	InformationManager::parseUnitsInfo();
 
 	m_totalSupply = InformationManager::getTotalSupply(true);
-	m_usedSupply = InformationManager::getUsedSupply();
+	m_usedSupply = InformationManager::getUsedSupply(true);
 
-	m_gas = m_player->gas();
-	m_mineral = m_player->minerals();
+	m_gas = InformationManager::getGas(true);;
+	m_mineral = InformationManager::getMinerals(true);
 }
 
 const std::map<BWAPI::UnitType, int>& InformationManager::getUnitCountMap() const
@@ -143,9 +143,81 @@ bool InformationManager::hasEnoughResources(BWAPI::UpgradeType type)
 	return returnable;
 }
 
-int InformationManager::getUsedSupply()
+int InformationManager::getMinerals(bool inProgress)
 {
-	return BWAPI::Broodwar->self()->supplyUsed() / 2;
+	int minerals = BWAPI::Broodwar->self()->gas();
+
+	if (!inProgress) { return minerals; }
+
+	for (auto& unit : BWAPI::Broodwar->self()->getUnits())
+	{
+		if (!unit) { continue; }
+
+		if (!unit->exists() || !unit->isCompleted()) { continue; }
+
+		const BWAPI::UnitCommand& command = unit->getLastCommand();
+		if (
+			command.getType() == BWAPI::UnitCommandTypes::Build ||
+			command.getType() == BWAPI::UnitCommandTypes::Build_Addon ||
+			command.getType() == BWAPI::UnitCommandTypes::Train ||
+			command.getType() == BWAPI::UnitCommandTypes::Research
+			)
+		{
+			minerals -= command.getUnitType().gasPrice();
+		}
+
+	}
+
+	return minerals;
+}
+
+int InformationManager::getGas(bool inProgress)
+{
+	int gas = BWAPI::Broodwar->self()->gas();
+
+	if (!inProgress) { return gas; }
+
+	for (auto& unit : BWAPI::Broodwar->self()->getUnits())
+	{
+		if (!unit) { continue; }
+
+		if (!unit->exists() || !unit->isCompleted()) { continue; }
+
+		const BWAPI::UnitCommand& command = unit->getLastCommand();
+		if (
+			command.getType() == BWAPI::UnitCommandTypes::Build ||
+			command.getType() == BWAPI::UnitCommandTypes::Build_Addon ||
+			command.getType() == BWAPI::UnitCommandTypes::Train ||
+			command.getType() == BWAPI::UnitCommandTypes::Research
+		   )
+		{
+			gas -= command.getUnitType().gasPrice();
+		}
+
+	}
+
+	return gas;
+}
+
+int InformationManager::getUsedSupply(bool inProgress)
+{
+	int usedSupply = BWAPI::Broodwar->self()->supplyUsed();
+
+	if (!inProgress) { return usedSupply / 2; }
+
+	for (auto& unit : BWAPI::Broodwar->self()->getUnits())
+	{
+		if (!unit) { continue; }
+
+		if (!unit->exists() || !unit->isCompleted()) { continue; }
+
+		const BWAPI::UnitCommand& command = unit->getLastCommand();
+		if (command.getType() != BWAPI::UnitCommandTypes::Build) { continue; }
+
+		usedSupply += command.getUnitType().supplyRequired();
+	}
+
+	return usedSupply;
 }
 
 int InformationManager::getTotalSupply(bool inProgress)
