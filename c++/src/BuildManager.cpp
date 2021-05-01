@@ -27,6 +27,19 @@ bool BuildManager::Build(const BaseManager* baseManager, BWAPI::UnitType type)
 	return BuildManager::Build(baseManager->getLocation(), type);
 }
 
+bool BuildManager::Build(BWAPI::UnitType type)
+{
+	std::vector<BaseManager> bases = InformationManager::Instance().getBases();
+	BWAPI::Position pos = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
+
+	if (!bases.empty())
+	{
+		pos = bases[0].getLocation();
+	}
+
+	return BuildManager::Build(pos, type);
+}
+
 bool BuildManager::Build(BWAPI::Position pos, BWAPI::UnitType type)
 {
 	if (!type) { return false; }

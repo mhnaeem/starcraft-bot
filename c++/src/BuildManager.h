@@ -25,5 +25,6 @@ public:
     void        onFrame();
     bool        Build(const BaseManager* baseManager, BWAPI::UnitType type);
     bool        Build(BWAPI::Position pos, BWAPI::UnitType type);
+    bool        Build(BWAPI::UnitType type);
     bool        isBuildInProgress(BWAPI::UnitType type);
 };

@@ -38,5 +38,20 @@ void GameManager::onFrame()
     {
         base.onFrame();
     }
+    GameManager::maintainSupplyCapacity();
     UnitManager::Instance().onFrame();
+}
+
+void GameManager::maintainSupplyCapacity()
+{
+    const int totalSupply = InformationManager::Instance().totalSupply();
+    const int usedSupply = InformationManager::Instance().usedSupply();
+    const int unusedSupply = totalSupply - usedSupply;
+
+    const BWAPI::UnitType supplyProviderType = BWAPI::Broodwar->self()->getRace().getSupplyProvider();
+    const int numOfSupplyProviders = InformationManager::Instance().getAllUnitsOfType(supplyProviderType).size();
+
+    if (unusedSupply > 2 && numOfSupplyProviders != 0) { return; }
+
+    BuildManager::Instance().Build(supplyProviderType);
 }
