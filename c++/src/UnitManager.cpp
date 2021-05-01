@@ -84,7 +84,7 @@ void UnitManager::setupScouts()
 void UnitManager::performScoutConfusionMicro(BWAPI::Unit scout)
 {
 
-	const std::vector<BWAPI::Position> enemyCenterLocations = InformationManager::Instance().getEnemyLocations();
+	const std::vector<BaseManager> enemyCenterLocations = InformationManager::Instance().getEnemyBases();
 	if (enemyCenterLocations.empty())
 	{
 		return;
@@ -104,8 +104,8 @@ void UnitManager::performScoutConfusionMicro(BWAPI::Unit scout)
 
 	auto const getNewPos = [&](double angle, int radius) {
 		double radians = angle * 3.14 / 180;
-		int newX = enemyCenterLocations[0].x + (std::cos(radians) * radius);
-		int newY = enemyCenterLocations[0].y + (std::sin(radians) * radius);
+		int newX = enemyCenterLocations[0].getLocation().x + (std::cos(radians) * radius);
+		int newY = enemyCenterLocations[0].getLocation().y + (std::sin(radians) * radius);
 
 		return BWAPI::Position(newX, newY);
 	};
@@ -138,9 +138,9 @@ void UnitManager::performScoutConfusionMicro(BWAPI::Unit scout)
 		{
 			SmartUtils::SmartAttack(scout, enemyBase);
 		}
-		else if (scout->hasPath(enemyCenterLocations[0]))
+		else if (scout->hasPath(enemyCenterLocations[0].getLocation()))
 		{
-			SmartUtils::SmartMove(scout, enemyCenterLocations[0]);
+			SmartUtils::SmartMove(scout, enemyCenterLocations[0].getLocation());
 		}
 	}
 
@@ -149,7 +149,7 @@ void UnitManager::performScoutConfusionMicro(BWAPI::Unit scout)
 
 bool UnitManager::performScouting(BWAPI::Unit scout)
 {
-	if (!scout || !scout->exists() || !scout->isCompleted() || !InformationManager::Instance().getEnemyLocations().empty())
+	if (!scout || !scout->exists() || !scout->isCompleted() || !InformationManager::Instance().getEnemyBases().empty())
 	{
 		return false;
 	}
@@ -170,7 +170,7 @@ bool UnitManager::performScouting(BWAPI::Unit scout)
 
 		if (enemyBase)
 		{
-			InformationManager::Instance().addEnemyPosition(enemyBase->getPosition());
+			InformationManager::Instance().addEnemyBase(enemyBase->getPosition());
 			m_unitOrders[scout->getID()] = UnitOrder::SCOUT_CONFUSION_MICRO;
 			return false;
 		}

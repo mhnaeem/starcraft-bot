@@ -19,7 +19,7 @@ class InformationManager
     std::map<BWAPI::UnitType, int>                        m_unitCountMap;
     std::map<BWAPI::UnitType, std::vector<BWAPI::Unit>>   m_unitsMap;
     BWAPI::Player                                         m_player = BWAPI::Broodwar->self();
-    std::vector<BWAPI::Position>                          m_enemyPositions;
+    std::vector<BaseManager>                              m_enemyBases;
     std::vector<BaseManager>                              m_bases;
 
     int           m_usedSupply;
@@ -43,8 +43,8 @@ public:
     const std::vector<BaseManager>&          getBases() const;
     const std::map<BWAPI::UnitType, int>&    getUnitCountMap() const;
     const std::vector<BWAPI::Unit>           getAllUnitsOfType(BWAPI::UnitType type) const;
-    const std::vector<BWAPI::Position>&      getEnemyLocations() const;
-    void                                     addEnemyPosition(BWAPI::Position pos);
+    const std::vector<BaseManager>&          getEnemyBases() const;
+    void                                     addEnemyBase(BWAPI::Position pos);
     void                                     onFrame();
     void                                     onStart();
     void                                     deductResources(BWAPI::UnitType type);
