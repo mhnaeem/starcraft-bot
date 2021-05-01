@@ -24,6 +24,8 @@ void BaseManager::onFrame()
 	updateRegions();
 	updateChokePoints();
 	updateUnits();
+
+	trainWorkers();
 }
 
 const std::vector<BWAPI::Region>& BaseManager::getRegions() const
@@ -120,4 +122,40 @@ void BaseManager::updateUnits()
 			}
 		}
 	}
+}
+
+void BaseManager::trainWorkers()
+{
+	if (InformationManager::Instance().usedSupply() % 6 == 0)
+	{
+		BaseManager::train(BWAPI::Broodwar->self()->getRace().getWorker());
+	}
+}
+
+bool BaseManager::train(BWAPI::UnitType type)
+{
+	const std::pair<BWAPI::UnitType, int> whatTrains = type.whatBuilds();
+
+	int unitsReady = 0;
+	BWAPI::Unit buildingNeeded = nullptr;
+
+	for (auto unit : m_units)
+	{
+		if (!unit) { continue; }
+
+		if (unit->getType() == whatTrains.first)
+		{
+			unitsReady++;
+			buildingNeeded = unit;
+		}
+
+		if (unitsReady == whatTrains.second)
+		{
+			break;
+		}
+	}
+
+	if (!buildingNeeded || unitsReady != whatTrains.second) { return false; }
+
+	return SmartUtils::SmartTrain(type, buildingNeeded);
 }

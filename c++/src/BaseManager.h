@@ -16,6 +16,8 @@ class BaseManager
 	BWAPI::Unit                   m_minerals;
 	BWAPI::Unit                   m_gas;
 
+	void                          trainWorkers();
+
 public:
 
 	BaseManager(BWAPI::Position baseLocation);
@@ -24,6 +26,7 @@ public:
 	void                                 updateRegions();
 	void                                 updateChokePoints();
 	void								 updateUnits();
+	bool								 train(BWAPI::UnitType type);
 	const BWAPI::Unit&                   getGas() const;
 	const BWAPI::Unit&					 getMinerals() const;
 	const std::vector<BWAPI::Region>&    getRegions() const;

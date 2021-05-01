@@ -3,6 +3,7 @@
 #include <BWAPI.h>
 #include "MapTools.h"
 #include "SmartUtils.h"
+#include "InformationManager.h"
 
 
 bool SmartUtils::SmartStop(BWAPI::Unit unit)
@@ -132,4 +133,55 @@ bool SmartUtils::HasAttackingEnemies(BWAPI::Region region)
 	}
 
 	return false;
+}
+
+bool SmartUtils::SmartTrain(BWAPI::UnitType type)
+{
+	if (!type) { return false; }
+
+	if (!InformationManager::Instance().hasEnoughResources(type)) { return false; }
+
+	const std::pair<BWAPI::UnitType, int> whatTrains = type.whatBuilds();
+
+	int unitsReady = 0;
+	BWAPI::Unit buildingNeeded = nullptr;
+
+	for (auto unit : BWAPI::Broodwar->self()->getUnits())
+	{
+		if (!unit) { continue; }
+
+		if (!unit->exists() || !unit->isCompleted() || unit->isTraining()) { continue; }
+
+		if (unit->getType() == whatTrains.first)
+		{
+			unitsReady++;
+			buildingNeeded = unit;
+		}
+
+		if (unitsReady == whatTrains.second)
+		{
+			break;
+		}
+	}
+
+	if (!buildingNeeded || unitsReady != whatTrains.second) { return false; }
+
+	bool train = buildingNeeded->train(type);
+	BWAPI::Broodwar->printf("%s %s", train ? "Started Training" : "Couldn't Train", type.getName().c_str());
+
+	return train;
+}
+
+bool SmartUtils::SmartTrain(BWAPI::UnitType type, BWAPI::Unit target)
+{
+	if (!type || !target) { return false; }
+
+	if (!target->exists() || !target->isCompleted() || target->isTraining()) { return false; }
+
+	if (!target->canTrain(type) || !InformationManager::Instance().hasEnoughResources(type)) { return false; }
+
+	bool train = target->train(type);
+	BWAPI::Broodwar->printf("%s %s", train ? "Started Training" : "Couldn't Train", type.getName().c_str());
+
+	return train;
 }

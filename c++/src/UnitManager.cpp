@@ -22,6 +22,7 @@ void UnitManager::onStart()
 
 void UnitManager::onFrame()
 {
+	idleWorkersCollectMinerals();
 	runOrders();
 }
 
