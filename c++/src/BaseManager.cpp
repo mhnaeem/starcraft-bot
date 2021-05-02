@@ -101,7 +101,7 @@ void BaseManager::updateChokePoints()
 
 	for (auto region : m_regions)
 	{
-		if (region && region->getDefensePriority() == 2)
+		if (region && region->getDefensePriority() == 2 && region->getNeighbors().size() >= 6)
 		{
 			m_chokePoints.push_back(region);
 		}

@@ -8,6 +8,7 @@ class GameManager
 {
 	void    maintainSupplyCapacity();
 	void    maintainGas();
+	void    rally();
 
 public:
 

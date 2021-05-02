@@ -41,6 +41,7 @@ void GameManager::onFrame()
     GameManager::maintainSupplyCapacity();
     GameManager::maintainGas();
     GameManager::followStrategy(GameManager::balancedStrategy());
+    GameManager::rally();
     UnitManager::Instance().onFrame();
 }
 
@@ -76,19 +77,19 @@ void GameManager::maintainGas()
 void GameManager::followStrategy(std::vector<std::pair<BWAPI::UnitType, int>> strategy)
 {
     if (strategy.empty()) { return; }
+    auto chokePoints = InformationManager::Instance().getBases()[0].getChokePoints();
+    if (chokePoints.empty()) { return; }
 
-    std::vector<BaseManager> bases = InformationManager::Instance().getBases();
-
-    if (bases.empty()) { return; }
-
-    BWAPI::Position pos = bases[0].getLocation();
+    auto chokePoint = chokePoints[0]->getCenter();
+    if (!chokePoint) { return; }
 
     auto buildWhatYouCan = [&](BWAPI::UnitType type)
     {
         auto needed = BuildManager::Instance().BuildingsNeeded(type);
         for (auto need : needed)
         {
-            BuildManager::Instance().Build(BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation()), need);
+            auto pos = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
+            BuildManager::Instance().Build(chokePoint, need);
         }
     };
 
@@ -120,4 +121,23 @@ std::vector<std::pair<BWAPI::UnitType, int>> GameManager::balancedStrategy()
     add(BWAPI::UnitTypes::Protoss_Dragoon, 10);
 
     return strat;
+}
+
+void GameManager::rally()
+{
+    auto chokePoints = InformationManager::Instance().getBases()[0].getChokePoints();
+    if (chokePoints.empty()) { return; }
+
+    auto chokePoint = chokePoints[0]->getCenter();
+    if (!chokePoint) { return; }
+
+    for (auto unit : BWAPI::Broodwar->self()->getUnits())
+    {
+        if (!unit) { continue; }
+
+        if (!unit->exists() || !unit->isCompleted() || unit->getType().isResourceDepot() || unit->getType().isWorker() || !unit->canSetRallyPosition()) { continue; }
+
+        if (unit->getRallyPosition() == chokePoint) { continue; }
+        unit->setRallyPoint(chokePoint);
+    }
 }
