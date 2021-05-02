@@ -7,11 +7,14 @@
 class GameManager
 {
 	void    maintainSupplyCapacity();
+	void    maintainGas();
 
 public:
 
 	GameManager();
 
-	void     onStart();
-	void     onFrame();
+	void                                               onStart();
+	void                                               onFrame();
+	std::vector<std::pair<BWAPI::UnitType, int>>       balancedStrategy();
+	void                                               followStrategy(std::vector<std::pair<BWAPI::UnitType, int>> strategy);
 };

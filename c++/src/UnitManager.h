@@ -7,6 +7,7 @@
 enum class UnitOrder
 {
 	COLLECT_MINERALS,
+	COLLECT_GAS,
 	SCOUT_CONFUSION_MICRO,
 	BUILD,
 	SCOUT
@@ -25,6 +26,7 @@ class UnitManager
 	bool    performScouting(BWAPI::Unit scout);
 	void    performScoutConfusionMicro(BWAPI::Unit scout);
 	bool    collectMinerals(BWAPI::Unit worker);
+	bool    collectGas(BWAPI::Unit worker);
 	void    idleWorkersCollectMinerals();
 
 public:

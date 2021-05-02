@@ -21,10 +21,11 @@ public:
         return instance;
     }
 
-    void        onStart();
-    void        onFrame();
-    bool        Build(const BaseManager* baseManager, BWAPI::UnitType type);
-    bool        Build(BWAPI::Position pos, BWAPI::UnitType type);
-    bool        Build(BWAPI::UnitType type);
-    bool        isBuildInProgress(BWAPI::UnitType type);
+    void                           onStart();
+    void                           onFrame();
+    bool                           Build(const BaseManager* baseManager, BWAPI::UnitType type);
+    bool                           Build(BWAPI::Position pos, BWAPI::UnitType type);
+    bool                           Build(BWAPI::UnitType type);
+    bool                           isBuildInProgress(BWAPI::UnitType type);
+    std::set<BWAPI::UnitType>      BuildingsNeeded(BWAPI::UnitType building);
 };

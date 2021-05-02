@@ -42,7 +42,10 @@ void UnitManager::runOrders()
 			break;
 		case UnitOrder::SCOUT_CONFUSION_MICRO:
 			performScoutConfusionMicro(unit);
-			return;
+			break;
+		case UnitOrder::COLLECT_GAS:
+			collectGas(unit);
+			break;
 		default:
 			break;
 		}
@@ -51,14 +54,46 @@ void UnitManager::runOrders()
 
 void UnitManager::idleWorkersCollectMinerals()
 {
+	int gasCollectors = 0;
+
 	std::vector<BWAPI::Unit> workers = InformationManager::Instance().getAllUnitsOfType(BWAPI::Broodwar->self()->getRace().getWorker());
 	for (auto worker : workers)
 	{
 		if (!worker || !worker->exists() || !worker->isCompleted()) { continue; }
 		std::map<int, UnitOrder>::iterator it = m_unitOrders.find(worker->getID());
-		if (it == m_unitOrders.end() || worker->isIdle()) {
+		if (it == m_unitOrders.end()) {
 			// if not in list then make them collect minerals
 			m_unitOrders[worker->getID()] = UnitOrder::COLLECT_MINERALS;
+			continue;
+		}
+
+		if(m_unitOrders[worker->getID()] == UnitOrder::COLLECT_GAS)
+		{
+			gasCollectors++;
+		}
+
+		if (worker->isIdle() && m_unitOrders[worker->getID()] != UnitOrder::SCOUT && m_unitOrders[worker->getID()] != UnitOrder::SCOUT_CONFUSION_MICRO)
+		{
+			m_unitOrders[worker->getID()] = UnitOrder::COLLECT_MINERALS;
+		}
+	}
+
+	if (gasCollectors <= 2 && InformationManager::Instance().getAllUnitsOfType(BWAPI::Broodwar->self()->getRace().getRefinery()).size() > 0)
+	{
+		for (auto worker : workers)
+		{
+			if (!worker || !worker->exists() || !worker->isCompleted()) { return; }
+
+			if (m_unitOrders[worker->getID()] == UnitOrder::COLLECT_MINERALS)
+			{
+				m_unitOrders[worker->getID()] = UnitOrder::COLLECT_GAS;
+				gasCollectors++;
+			}
+			
+			if (gasCollectors >= 2)
+			{
+				break;
+			}
 		}
 	}
 }
@@ -203,6 +238,17 @@ bool UnitManager::collectMinerals(BWAPI::Unit worker)
 	BWAPI::Unit mineralField = InformationManager::Instance().getBases()[0].getMinerals();
 
 	return SmartUtils::SmartRightClick(worker, mineralField);
+}
+
+bool UnitManager::collectGas(BWAPI::Unit worker)
+{
+	if (!worker || !worker->exists() || !worker->isCompleted() || !worker->getType().isWorker())
+	{
+		return false;
+	}
+
+	BWAPI::Unit gas = BWAPI::Broodwar->getGeysers().getClosestUnit();
+	return SmartUtils::SmartRightClick(worker, gas);
 }
 
 void UnitManager::setOrder(int unitID, UnitOrder order)

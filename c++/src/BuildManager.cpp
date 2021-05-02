@@ -138,3 +138,34 @@ void BuildManager::trackBuilds()
 		m_buildingsInProgress.erase(item);
 	}
 }
+
+std::set<BWAPI::UnitType> BuildManager::BuildingsNeeded(BWAPI::UnitType building)
+{
+	std::set<BWAPI::UnitType> set = std::set<BWAPI::UnitType>();
+
+	std::function<void(BWAPI::UnitType)> fillUp = [&](BWAPI::UnitType type)
+	{
+		if (!type || type == BWAPI::Broodwar->self()->getRace().getResourceDepot() || type == BWAPI::Broodwar->self()->getRace().getWorker())
+		{
+			return;
+		}
+
+		std::map<BWAPI::UnitType, int> required = type.requiredUnits();
+		std::map<BWAPI::UnitType, int> myUnits = InformationManager::Instance().getUnitCountMap();
+
+		for (std::map<BWAPI::UnitType, int>::const_iterator i = required.begin(); i != required.end(); i++)
+		{
+			const int count = InformationManager::Instance().getAllUnitsOfType(i->first).size();
+
+			if (count >= i->second) { continue; }
+
+			if (set.find(i->first) != set.end()) { continue; }
+
+			set.insert(i->first);
+			fillUp(i->first);
+		}
+	};
+	set.insert(building);
+	fillUp(building);
+	return set;
+}
