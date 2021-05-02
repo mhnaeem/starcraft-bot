@@ -79,12 +79,12 @@ void GameManager::followStrategy(std::vector<std::pair<BWAPI::UnitType, int>> st
     bool cp = true;
     BWAPI::Position chokePoint;
     if (strategy.empty()) { return; }
-    auto chokePoints = InformationManager::Instance().getBases()[0].getChokePoints();
+    std::vector<int> chokePoints = InformationManager::Instance().getBases()[0].getChokePoints();
     if (chokePoints.empty()) { cp = false; }
 
     if (cp)
     {
-        chokePoint = chokePoints[0]->getCenter();
+        chokePoint = BWAPI::Broodwar->getRegion(chokePoints[0])->getCenter();
         if (!chokePoint) { cp = false; }
     }
 
@@ -149,10 +149,10 @@ std::vector<std::pair<BWAPI::UnitType, int>> GameManager::balancedStrategy()
 
 void GameManager::rally()
 {
-    auto chokePoints = InformationManager::Instance().getBases()[0].getChokePoints();
+    std::vector<int> chokePoints = InformationManager::Instance().getBases()[0].getChokePoints();
     if (chokePoints.empty()) { return; }
 
-    auto chokePoint = chokePoints[0]->getCenter();
+    BWAPI::Position chokePoint = BWAPI::Broodwar->getRegion(chokePoints[0])->getCenter();
     if (!chokePoint) { return; }
 
     for (auto unit : BWAPI::Broodwar->self()->getUnits())

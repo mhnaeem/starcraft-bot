@@ -124,7 +124,7 @@ void UnitManager::setupScouts()
 void UnitManager::performScoutConfusionMicro(BWAPI::Unit scout)
 {
 
-	const std::vector<BaseManager> enemyCenterLocations = InformationManager::Instance().getEnemyBases();
+	std::vector<BaseManager> enemyCenterLocations = InformationManager::Instance().getEnemyBases();
 	if (enemyCenterLocations.empty())
 	{
 		return;
@@ -239,7 +239,10 @@ bool UnitManager::collectMinerals(BWAPI::Unit worker)
 		return false;
 	}
 
-	BWAPI::Unit mineralField = InformationManager::Instance().getBases()[0].getMinerals();
+	std::vector<BaseManager> bases = InformationManager::Instance().getBases();
+	if (bases.empty()) { return false; }
+
+	BWAPI::Unit mineralField = bases[0].getMinerals();
 
 	return SmartUtils::SmartRightClick(worker, mineralField);
 }

@@ -20,7 +20,7 @@ void BuildManager::onFrame()
 	BuildManager::trackBuilds();
 }
 
-bool BuildManager::Build(const BaseManager* baseManager, BWAPI::UnitType type)
+bool BuildManager::Build(BaseManager* baseManager, BWAPI::UnitType type)
 {
 	if (!baseManager) { return false; }
 

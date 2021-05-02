@@ -11,50 +11,50 @@
 BaseManager::BaseManager(BWAPI::Position baseLocation)
 {
 	m_baseLocation = baseLocation;
-	m_regions = std::vector<BWAPI::Region>();
-	m_chokePoints = std::vector<BWAPI::Region>();
-	m_units = std::set<BWAPI::Unit>();
+	m_regions = std::vector<int>();
+	m_chokePoints = std::vector<int>();
+	m_units = std::set<int>();
 	m_minerals = SmartUtils::GetClosestUnitTo(baseLocation, BWAPI::Broodwar->getMinerals());
 	m_gas = SmartUtils::GetClosestUnitTo(baseLocation, BWAPI::Broodwar->getGeysers());
 
+	updateRegions();
+	updateChokePoints();
 	onFrame();
 }
 
 void BaseManager::onFrame()
 {
-	updateRegions();
-	updateChokePoints();
 	updateUnits();
 
 	trainWorkers();
 }
 
-const std::vector<BWAPI::Region>& BaseManager::getRegions() const
+const std::vector<int> BaseManager::getRegions() const
 {
 	return m_regions;
 }
 
-const std::vector<BWAPI::Region>& BaseManager::getChokePoints() const
+const std::vector<int> BaseManager::getChokePoints() const
 {
 	return m_chokePoints;
 }
 
-const std::set<BWAPI::Unit>& BaseManager::getUnits() const
+const std::set<int> BaseManager::getUnits() const
 {
 	return m_units;
 }
 
-const BWAPI::Unit& BaseManager::getMinerals() const
+BWAPI::Unit BaseManager::getMinerals()
 {
 	return m_minerals;
 }
 
-const BWAPI::Unit& BaseManager::getGas() const
+BWAPI::Unit BaseManager::getGas()
 {
 	return m_gas;
 }
 
-const BWAPI::Position& BaseManager::getLocation() const
+BWAPI::Position BaseManager::getLocation()
 {
 	return m_baseLocation;
 }
@@ -78,14 +78,18 @@ void BaseManager::updateRegions()
 			break;
 		}
 
-		BWAPI::Region& region = queue[queueIndex];
-		m_regions.push_back(region);
+		BWAPI::Region region = queue[queueIndex];
+		if (!region) { continue; }
+
+		m_regions.push_back(region->getID());
 		queueIndex++;
 
 		if (depth <= m_depthOfRegions) {
-			for (auto expRegion : region->getNeighbors())
+			for (BWAPI::Region expRegion : region->getNeighbors())
 			{
-				if (expRegion && std::find(queue.begin(), queue.end(), expRegion) == queue.end())
+				if (!expRegion) { continue; }
+
+				if (std::find(queue.begin(), queue.end(), expRegion) == queue.end())
 				{
 					queue.push_back(expRegion);
 				}
@@ -99,11 +103,14 @@ void BaseManager::updateChokePoints()
 {
 	m_chokePoints.clear();
 
-	for (auto region : m_regions)
+	for (int regionID : m_regions)
 	{
-		if (region && region->getDefensePriority() == 2 && region->getNeighbors().size() >= 6)
+		BWAPI::Region region = BWAPI::Broodwar->getRegion(regionID);
+		if (!region) { continue; }
+
+		if (region->getDefensePriority() == 2 && region->getNeighbors().size() >= 6)
 		{
-			m_chokePoints.push_back(region);
+			m_chokePoints.push_back(regionID);
 		}
 	}
 }
@@ -114,17 +121,22 @@ void BaseManager::updateUnits()
 	
 	if (m_regions.empty()) { return; }
 	
-	for (auto region : m_regions)
+	for (int regionID : m_regions)
 	{
-		if (region)
+		BWAPI::Region region = BWAPI::Broodwar->getRegion(regionID);
+
+		if (!region) { continue; }
+
+		BWAPI::Unitset units = region->getUnits();
+		for (BWAPI::Unit unit : units)
 		{
-			BWAPI::Unitset& units = region->getUnits();
-			for (auto unit : units)
+			if (!unit) { continue; }
+
+			int unitID = unit->getID();
+
+			if (m_units.find(unitID) == m_units.end())
 			{
-				if (m_units.find(unit) == m_units.end())
-				{
-					m_units.insert(unit);
-				}
+				m_units.insert(unitID);
 			}
 		}
 	}
@@ -145,8 +157,10 @@ bool BaseManager::train(BWAPI::UnitType type)
 	int unitsReady = 0;
 	BWAPI::Unit buildingNeeded = nullptr;
 
-	for (auto unit : m_units)
+	for (int unitID : m_units)
 	{
+		BWAPI::Unit unit = BWAPI::Broodwar->getUnit(unitID);
+
 		if (!unit) { continue; }
 
 		if (unit->getType() == whatTrains.first)

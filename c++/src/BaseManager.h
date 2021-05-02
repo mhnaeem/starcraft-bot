@@ -9,10 +9,10 @@
 class BaseManager
 {
 	int                           m_depthOfRegions = 5;
-	std::vector<BWAPI::Region>    m_regions;
-	std::vector<BWAPI::Region>    m_chokePoints;
+	std::vector<int>              m_regions;
+	std::vector<int>              m_chokePoints;
 	BWAPI::Position               m_baseLocation;
-	std::set<BWAPI::Unit>		  m_units;
+	std::set<int>          		  m_units;
 	BWAPI::Unit                   m_minerals;
 	BWAPI::Unit                   m_gas;
 
@@ -28,10 +28,10 @@ public:
 	void								 updateUnits();
 	bool								 train(BWAPI::UnitType type);
 	bool                                 build(BWAPI::UnitType type);
-	const BWAPI::Unit&                   getGas() const;
-	const BWAPI::Unit&					 getMinerals() const;
-	const BWAPI::Position&				 getLocation() const;
-	const std::vector<BWAPI::Region>&    getRegions() const;
-	const std::vector<BWAPI::Region>&    getChokePoints() const;
-	const std::set<BWAPI::Unit>&         getUnits() const;
+	BWAPI::Unit                          getGas();
+	BWAPI::Unit					         getMinerals();
+	BWAPI::Position				         getLocation();
+	const std::vector<int>               getRegions() const;
+	const std::vector<int>               getChokePoints() const;
+	const std::set<int>                  getUnits() const;
 };
