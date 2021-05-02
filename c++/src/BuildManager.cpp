@@ -51,7 +51,7 @@ bool BuildManager::Build(BWAPI::Position pos, BWAPI::UnitType type)
 	const BWAPI::UnitType builderType = type.whatBuilds().first;
 	if (!builderType) { return false; }
 
-	const int maxBuildRange = 64;
+	const int maxBuildRange = 100;
 	const bool buildingNearCreep = type.requiresCreep();
 	const BWAPI::TilePosition desiredPos = BWAPI::TilePosition(pos);
 	const BWAPI::TilePosition buildPos = BWAPI::Broodwar->getBuildLocation(type, desiredPos, maxBuildRange, buildingNearCreep);

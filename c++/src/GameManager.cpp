@@ -76,12 +76,17 @@ void GameManager::maintainGas()
 
 void GameManager::followStrategy(std::vector<std::pair<BWAPI::UnitType, int>> strategy)
 {
+    bool cp = true;
+    BWAPI::Position chokePoint;
     if (strategy.empty()) { return; }
     auto chokePoints = InformationManager::Instance().getBases()[0].getChokePoints();
-    if (chokePoints.empty()) { return; }
+    if (chokePoints.empty()) { cp = false; }
 
-    auto chokePoint = chokePoints[0]->getCenter();
-    if (!chokePoint) { return; }
+    if (cp)
+    {
+        chokePoint = chokePoints[0]->getCenter();
+        if (!chokePoint) { cp = false; }
+    }
 
     auto buildWhatYouCan = [&](BWAPI::UnitType type)
     {
@@ -89,7 +94,15 @@ void GameManager::followStrategy(std::vector<std::pair<BWAPI::UnitType, int>> st
         for (auto need : needed)
         {
             auto pos = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
-            BuildManager::Instance().Build(chokePoint, need);
+
+            if (cp && chokePoint)
+            {
+                if (BWAPI::UnitTypes::Protoss_Pylon == need || BWAPI::UnitTypes::Protoss_Photon_Cannon == need)
+                {
+                    pos = chokePoint;
+                }
+            }
+            BuildManager::Instance().Build(pos, need);
         }
     };
 

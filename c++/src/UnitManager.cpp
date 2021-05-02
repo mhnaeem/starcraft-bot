@@ -247,8 +247,13 @@ bool UnitManager::collectGas(BWAPI::Unit worker)
 		return false;
 	}
 
-	BWAPI::Unit gas = BWAPI::Broodwar->getGeysers().getClosestUnit();
-	return SmartUtils::SmartRightClick(worker, gas);
+	auto units = InformationManager::Instance().getAllUnitsOfType(BWAPI::Broodwar->self()->getRace().getRefinery());
+	if (units.empty()) { return false; }
+
+	auto refinery = units[0];
+
+	if (!refinery->exists() || !refinery->isCompleted()) { return false; }
+	return SmartUtils::SmartRightClick(worker, refinery);
 }
 
 void UnitManager::setOrder(int unitID, UnitOrder order)
