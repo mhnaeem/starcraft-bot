@@ -70,7 +70,7 @@ void InformationManager::parseUnitsInfo()
 	BWAPI::Unitset myUnits = m_player->getUnits();
 	for (auto& unit : myUnits)
 	{
-		if (!unit || !unit->exists()) { continue; }
+		if (!unit) { continue; }
 		const BWAPI::UnitType type = unit->getType();
 
 		try
@@ -109,6 +109,7 @@ void InformationManager::deductResources(BWAPI::UnitType type)
 	{
 		m_gas -= type.gasPrice();
 		m_mineral -= type.mineralPrice();
+		m_usedSupply += type.supplyRequired();
 	}
 }
 
@@ -219,7 +220,7 @@ int InformationManager::getUsedSupply(bool inProgress)
 		usedSupply += command.getUnitType().supplyRequired();
 	}
 
-	return usedSupply;
+	return usedSupply / 2;
 }
 
 int InformationManager::getTotalSupply(bool inProgress)
