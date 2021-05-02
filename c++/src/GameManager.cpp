@@ -13,7 +13,7 @@ GameManager::GameManager()
 void GameManager::onStart()
 {
     BWAPI::Unit resourceDepot = nullptr;
-    for (auto unit : BWAPI::Broodwar->self()->getUnits())
+    for (BWAPI::Unit unit : BWAPI::Broodwar->self()->getUnits())
     {
         if (unit && unit->getType().isResourceDepot())
         {
@@ -34,7 +34,7 @@ void GameManager::onStart()
 void GameManager::onFrame()
 {
     BuildManager::Instance().onFrame();
-    for (auto base : InformationManager::Instance().getBases())
+    for (BaseManager base : InformationManager::Instance().getBases())
     {
         base.onFrame();
     }
@@ -91,9 +91,9 @@ void GameManager::followStrategy(std::vector<std::pair<BWAPI::UnitType, int>> st
     auto buildWhatYouCan = [&](BWAPI::UnitType type)
     {
         auto needed = BuildManager::Instance().BuildingsNeeded(type);
-        for (auto need : needed)
+        for (BWAPI::UnitType need : needed)
         {
-            auto pos = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
+            BWAPI::Position pos = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
 
             if (cp && chokePoint)
             {
@@ -155,7 +155,7 @@ void GameManager::rally()
     BWAPI::Position chokePoint = BWAPI::Broodwar->getRegion(chokePoints[0])->getCenter();
     if (!chokePoint) { return; }
 
-    for (auto unit : BWAPI::Broodwar->self()->getUnits())
+    for (BWAPI::Unit unit : BWAPI::Broodwar->self()->getUnits())
     {
         if (!unit) { continue; }
 

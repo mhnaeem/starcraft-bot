@@ -145,7 +145,7 @@ bool SmartUtils::SmartTrain(BWAPI::UnitType type)
 	int unitsReady = 0;
 	BWAPI::Unit buildingNeeded = nullptr;
 
-	for (auto unit : BWAPI::Broodwar->self()->getUnits())
+	for (BWAPI::Unit unit : BWAPI::Broodwar->self()->getUnits())
 	{
 		if (!unit) { continue; }
 
@@ -179,7 +179,9 @@ bool SmartUtils::SmartTrain(BWAPI::UnitType type, BWAPI::Unit target)
 {
 	if (!type || !target) { return false; }
 
-	if (!target->exists() || !target->isCompleted() || target->isTraining()) { return false; }
+	if (!target->exists() || !target->isCompleted()) { return false; }
+
+	if (target->isTraining()) { return true; }
 
 	if (!target->canTrain(type) || !InformationManager::Instance().hasEnoughResources(type)) { return false; }
 
