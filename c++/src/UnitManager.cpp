@@ -54,8 +54,9 @@ void UnitManager::idleWorkersCollectMinerals()
 	std::vector<BWAPI::Unit> workers = InformationManager::Instance().getAllUnitsOfType(BWAPI::Broodwar->self()->getRace().getWorker());
 	for (auto worker : workers)
 	{
+		if (!worker || !worker->exists() || !worker->isCompleted()) { continue; }
 		std::map<int, UnitOrder>::iterator it = m_unitOrders.find(worker->getID());
-		if (it == m_unitOrders.end()) {
+		if (it == m_unitOrders.end() || worker->isIdle()) {
 			// if not in list then make them collect minerals
 			m_unitOrders[worker->getID()] = UnitOrder::COLLECT_MINERALS;
 		}
@@ -68,7 +69,7 @@ void UnitManager::setupScouts()
 	std::vector<BWAPI::Unit> possibleScouts = InformationManager::Instance().getAllUnitsOfType(BWAPI::Broodwar->self()->getRace().getWorker());
 	for (auto unit : possibleScouts)
 	{
-		if (unit && unit->exists())
+		if (unit && unit->exists() && unit->isCompleted())
 		{
 			m_unitOrders[unit->getID()] = UnitOrder::SCOUT;
 			scoutCount++;
