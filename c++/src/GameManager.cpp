@@ -106,10 +106,12 @@ void GameManager::followStrategy(std::vector<std::pair<BWAPI::UnitType, int>> st
         }
     };
 
+    int done = 0;
+
     for (auto build : strategy)
     {
         BWAPI::UnitType type = build.first;
-        if (InformationManager::Instance().getAllUnitsOfType(type).size() <= build.second)
+        if (InformationManager::Instance().getAllUnitsOfType(type).size() < build.second)
         {
             buildWhatYouCan(type);
             if (!type.isBuilding())
@@ -117,6 +119,15 @@ void GameManager::followStrategy(std::vector<std::pair<BWAPI::UnitType, int>> st
                 SmartUtils::SmartTrain(type);
             }
         }
+        else
+        {
+            done++;
+        }
+    }
+
+    if (done == strategy.size())
+    {
+        UnitManager::Instance().attack();
     }
 }
 

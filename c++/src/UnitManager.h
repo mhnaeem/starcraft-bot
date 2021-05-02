@@ -37,6 +37,7 @@ public:
 		return instance;
 	}
 
+	void          attack();
 	void          onFrame();
 	void          onStart();
 	void          setOrder(int unitID, UnitOrder order);

@@ -265,3 +265,45 @@ UnitOrder UnitManager::getOrder(int unitID)
 {
 	return m_unitOrders[unitID];
 }
+
+void UnitManager::attack()
+{
+	auto enemy = InformationManager::Instance().getEnemyBases();
+	if (enemy.empty())
+	{
+		return;
+	}
+
+	auto enemyWorkerInRadius = [&](BWAPI::Unit u)
+	{
+		for (auto& unit : BWAPI::Broodwar->enemy()->getUnits())
+		{
+			if (unit && unit->exists() && unit->isCompleted() && (unit->getDistance(u) <= 200))
+			{
+				return true;
+			}
+		}
+		return false;
+	};
+
+	auto enemyLocation = enemy[0].getLocation();
+
+	for (auto unit : BWAPI::Broodwar->self()->getUnits())
+	{
+		if (!unit) { continue; }
+
+		if (!unit->isCompleted() || !unit->exists()) { continue; }
+
+		if (unit->getType().isWorker() || unit->getType().isBuilding()) { continue; }
+
+		auto attackers = SmartUtils::SmartDetectEnemy(unit);
+		if (unit->isUnderAttack() || !attackers.empty())
+		{
+			SmartUtils::SmartAttack(unit, attackers.getClosestUnit());
+		}
+		else
+		{
+			SmartUtils::SmartMove(unit, enemyLocation);
+		}
+	}
+}
