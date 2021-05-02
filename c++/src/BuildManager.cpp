@@ -64,7 +64,7 @@ bool BuildManager::Build(BWAPI::Position pos, BWAPI::UnitType type)
 	{
 		InformationManager::Instance().deductResources(type);
 		UnitManager::Instance().setOrder(builder->getID(), UnitOrder::BUILD);
-		m_buildingsInProgress[type] = std::pair<int, int>(builder->getID(), InformationManager::Instance().getAllUnitsOfType(type).size());
+		m_buildingsInProgress[type] = std::pair<int, int>(builder->getID(), InformationManager::Instance().getCountOfType(type));
 	}
 
 	BWAPI::Broodwar->printf("%s %s", build ? "Started Building" : "Couldn't Build", type.getName().c_str());
@@ -73,10 +73,11 @@ bool BuildManager::Build(BWAPI::Position pos, BWAPI::UnitType type)
 
 BWAPI::Unit BuildManager::getBuildUnit(BWAPI::TilePosition buildPos, BWAPI::UnitType builderType)
 {
-	std::vector<BWAPI::Unit> units = InformationManager::Instance().getAllUnitsOfType(builderType);
+	std::vector<int> units = InformationManager::Instance().getAllUnitsOfType(builderType);
 
-	for (auto unit : units)
+	for (int unitID : units)
 	{
+		BWAPI::Unit unit = BWAPI::Broodwar->getUnit(unitID);
 		if (!unit || !unit->exists() || !unit->isCompleted())
 		{
 			continue;
@@ -124,7 +125,7 @@ void BuildManager::trackBuilds()
 			continue;
 		}
 
-		if (InformationManager::Instance().getAllUnitsOfType(it->first).size() <= it->second.second)
+		if (InformationManager::Instance().getCountOfType(it->first) <= it->second.second)
 		{
 			continue;
 		}
@@ -151,11 +152,10 @@ std::set<BWAPI::UnitType> BuildManager::BuildingsNeeded(BWAPI::UnitType building
 		}
 
 		std::map<BWAPI::UnitType, int> required = type.requiredUnits();
-		std::map<BWAPI::UnitType, int> myUnits = InformationManager::Instance().getUnitCountMap();
 
 		for (std::map<BWAPI::UnitType, int>::const_iterator i = required.begin(); i != required.end(); i++)
 		{
-			const int count = InformationManager::Instance().getAllUnitsOfType(i->first).size();
+			const int count = InformationManager::Instance().getCountOfType(i->first);
 
 			if (count >= i->second) { continue; }
 

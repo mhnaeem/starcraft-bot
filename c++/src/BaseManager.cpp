@@ -132,7 +132,7 @@ void BaseManager::updateUnits()
 
 void BaseManager::trainWorkers()
 {
-	if (InformationManager::Instance().usedSupply() % 6 == 0 || InformationManager::Instance().getAllUnitsOfType(BWAPI::Broodwar->self()->getRace().getWorker()).size() <= 5)
+	if (InformationManager::Instance().usedSupply() % 6 == 0 || InformationManager::Instance().getCountOfType(BWAPI::Broodwar->self()->getRace().getWorker()) <= 5)
 	{
 		BaseManager::train(BWAPI::Broodwar->self()->getRace().getWorker());
 	}

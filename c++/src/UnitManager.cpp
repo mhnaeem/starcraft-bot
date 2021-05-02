@@ -56,9 +56,11 @@ void UnitManager::idleWorkersCollectMinerals()
 {
 	int gasCollectors = 0;
 
-	std::vector<BWAPI::Unit> workers = InformationManager::Instance().getAllUnitsOfType(BWAPI::Broodwar->self()->getRace().getWorker());
-	for (auto worker : workers)
+	std::vector<int> workers = InformationManager::Instance().getAllUnitsOfType(BWAPI::Broodwar->self()->getRace().getWorker());
+	for (int workerID : workers)
 	{
+		BWAPI::Unit worker = BWAPI::Broodwar->getUnit(workerID);
+
 		if (!worker || !worker->exists() || !worker->isCompleted()) { continue; }
 		std::map<int, UnitOrder>::iterator it = m_unitOrders.find(worker->getID());
 		if (it == m_unitOrders.end()) {
@@ -78,10 +80,11 @@ void UnitManager::idleWorkersCollectMinerals()
 		}
 	}
 
-	if (gasCollectors <= 2 && InformationManager::Instance().getAllUnitsOfType(BWAPI::Broodwar->self()->getRace().getRefinery()).size() > 0)
+	if (gasCollectors <= 2 && InformationManager::Instance().getCountOfType(BWAPI::Broodwar->self()->getRace().getRefinery()) > 0)
 	{
-		for (auto worker : workers)
+		for (int workerID : workers)
 		{
+			BWAPI::Unit worker = BWAPI::Broodwar->getUnit(workerID);
 			if (!worker || !worker->exists() || !worker->isCompleted()) { return; }
 
 			if (m_unitOrders[worker->getID()] == UnitOrder::COLLECT_MINERALS)
@@ -101,12 +104,13 @@ void UnitManager::idleWorkersCollectMinerals()
 void UnitManager::setupScouts()
 {
 	int scoutCount = 0;
-	std::vector<BWAPI::Unit> possibleScouts = InformationManager::Instance().getAllUnitsOfType(BWAPI::Broodwar->self()->getRace().getWorker());
-	for (auto unit : possibleScouts)
+	const std::vector<int>& possibleScouts = InformationManager::Instance().getAllUnitsOfType(BWAPI::Broodwar->self()->getRace().getWorker());
+	for (int unitID : possibleScouts)
 	{
+		BWAPI::Unit unit = BWAPI::Broodwar->getUnit(unitID);
 		if (unit && unit->exists() && unit->isCompleted())
 		{
-			m_unitOrders[unit->getID()] = UnitOrder::SCOUT;
+			m_unitOrders[unitID] = UnitOrder::SCOUT;
 			scoutCount++;
 		}
 
@@ -250,9 +254,9 @@ bool UnitManager::collectGas(BWAPI::Unit worker)
 	auto units = InformationManager::Instance().getAllUnitsOfType(BWAPI::Broodwar->self()->getRace().getRefinery());
 	if (units.empty()) { return false; }
 
-	auto refinery = units[0];
+	BWAPI::Unit refinery = BWAPI::Broodwar->getUnit(units[0]);
 
-	if (!refinery->exists() || !refinery->isCompleted()) { return false; }
+	if (!refinery || !refinery->exists() || !refinery->isCompleted()) { return false; }
 	return SmartUtils::SmartRightClick(worker, refinery);
 }
 

@@ -52,7 +52,7 @@ void GameManager::maintainSupplyCapacity()
     const int unusedSupply = totalSupply - usedSupply;
 
     const BWAPI::UnitType supplyProviderType = BWAPI::Broodwar->self()->getRace().getSupplyProvider();
-    const int numOfSupplyProviders = InformationManager::Instance().getAllUnitsOfType(supplyProviderType).size();
+    const int numOfSupplyProviders = InformationManager::Instance().getCountOfType(supplyProviderType);
 
     if (unusedSupply > 2 && numOfSupplyProviders != 0) { return; }
 
@@ -64,7 +64,7 @@ void GameManager::maintainGas()
     const int totalSupply = InformationManager::Instance().totalSupply();
 
     const BWAPI::UnitType refineryType = BWAPI::Broodwar->self()->getRace().getRefinery();
-    const int numOfRefineries = InformationManager::Instance().getAllUnitsOfType(refineryType).size();
+    const int numOfRefineries = InformationManager::Instance().getCountOfType(refineryType);
 
     if (totalSupply <= 25 || numOfRefineries != 0) { return; }
 
@@ -111,7 +111,7 @@ void GameManager::followStrategy(std::vector<std::pair<BWAPI::UnitType, int>> st
     for (auto build : strategy)
     {
         BWAPI::UnitType type = build.first;
-        if (InformationManager::Instance().getAllUnitsOfType(type).size() < build.second)
+        if (InformationManager::Instance().getCountOfType(type) < build.second)
         {
             buildWhatYouCan(type);
             if (!type.isBuilding())

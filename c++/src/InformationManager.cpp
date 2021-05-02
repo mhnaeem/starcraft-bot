@@ -13,6 +13,8 @@ void InformationManager::onStart()
 {
 	m_enemyBases = std::vector<BaseManager>();
 	m_bases = std::vector<BaseManager>();
+	m_unitCountMap = std::map<BWAPI::UnitType, int>();
+	m_unitsMap = std::map<BWAPI::UnitType, std::vector<int>>();
 	InformationManager::onFrame();
 }
 
@@ -27,17 +29,12 @@ void InformationManager::onFrame()
 	m_mineral = InformationManager::getMinerals(true);
 }
 
-const std::map<BWAPI::UnitType, int>& InformationManager::getUnitCountMap() const
-{
-	return m_unitCountMap;
-}
-
-const std::vector<BaseManager>& InformationManager::getEnemyBases() const
+const std::vector<BaseManager> InformationManager::getEnemyBases() const
 {
 	return m_enemyBases;
 }
 
-const std::vector<BaseManager>& InformationManager::getBases() const
+const std::vector<BaseManager> InformationManager::getBases() const
 {
 	return m_bases;
 }
@@ -68,28 +65,29 @@ void InformationManager::parseUnitsInfo()
 	m_unitCountMap.clear();
 
 	BWAPI::Unitset myUnits = m_player->getUnits();
-	for (auto& unit : myUnits)
+	for (BWAPI::Unit unit : myUnits)
 	{
 		if (!unit) { continue; }
 		const BWAPI::UnitType type = unit->getType();
+		const int unitID = unit->getID();
 
 		try
 		{
 			m_unitCountMap.at(type) += 1;
-			m_unitsMap[type].push_back(unit);
+			m_unitsMap[type].push_back(unitID);
 		}
 		catch (const std::out_of_range&)
 		{
 			m_unitCountMap[type] = 1;
-			m_unitsMap.insert(std::pair<BWAPI::UnitType, std::vector<BWAPI::Unit>>(type, std::vector<BWAPI::Unit>()));
-			m_unitsMap[type].push_back(unit);
+			m_unitsMap.insert(std::pair<BWAPI::UnitType, std::vector<int>>(type, std::vector<int>()));
+			m_unitsMap[type].push_back(unitID);
 		}
 	}
 }
 
-const std::vector<BWAPI::Unit> InformationManager::getAllUnitsOfType(BWAPI::UnitType type) const
+const std::vector<int> InformationManager::getAllUnitsOfType(BWAPI::UnitType type) const
 {
-	std::vector<BWAPI::Unit> returnable;
+	std::vector<int> returnable;
 
 	try
 	{
@@ -98,7 +96,23 @@ const std::vector<BWAPI::Unit> InformationManager::getAllUnitsOfType(BWAPI::Unit
 	}
 	catch (const std::out_of_range&)
 	{
-		returnable = std::vector<BWAPI::Unit>();
+		returnable = std::vector<int>();
+	}
+	return returnable;
+}
+
+int InformationManager::getCountOfType(BWAPI::UnitType type)
+{
+	int returnable = 0;
+
+	try
+	{
+		returnable = m_unitCountMap.at(type);
+
+	}
+	catch (const std::out_of_range&)
+	{
+		returnable = 0;
 	}
 	return returnable;
 }
@@ -117,7 +131,7 @@ bool InformationManager::hasEnoughResources(BWAPI::UnitType type)
 {
 	bool returnable = false;
 
-	if (type && type.gasPrice() <= m_gas && type.mineralPrice() <= m_mineral)
+	if (type && type.gasPrice() <= m_gas && type.mineralPrice() <= m_mineral && type.supplyRequired() <= m_usedSupply)
 	{
 		returnable = true;
 	}
@@ -150,13 +164,13 @@ int InformationManager::getMinerals(bool inProgress)
 
 	if (!inProgress) { return minerals; }
 
-	for (auto& unit : BWAPI::Broodwar->self()->getUnits())
+	for (BWAPI::Unit unit : BWAPI::Broodwar->self()->getUnits())
 	{
 		if (!unit) { continue; }
 
 		if (!unit->exists() || !unit->isCompleted()) { continue; }
 
-		const BWAPI::UnitCommand& command = unit->getLastCommand();
+		const BWAPI::UnitCommand command = unit->getLastCommand();
 		if (
 			command.getType() == BWAPI::UnitCommandTypes::Build ||
 			command.getType() == BWAPI::UnitCommandTypes::Build_Addon ||
@@ -165,7 +179,7 @@ int InformationManager::getMinerals(bool inProgress)
 			command.getType() == BWAPI::UnitCommandTypes::Research
 			)
 		{
-			minerals -= command.getUnitType().gasPrice();
+			minerals -= command.getUnitType().mineralPrice();
 		}
 
 	}
@@ -179,13 +193,13 @@ int InformationManager::getGas(bool inProgress)
 
 	if (!inProgress) { return gas; }
 
-	for (auto& unit : BWAPI::Broodwar->self()->getUnits())
+	for (BWAPI::Unit unit : BWAPI::Broodwar->self()->getUnits())
 	{
 		if (!unit) { continue; }
 
 		if (!unit->exists() || !unit->isCompleted()) { continue; }
 
-		const BWAPI::UnitCommand& command = unit->getLastCommand();
+		const BWAPI::UnitCommand command = unit->getLastCommand();
 		if (
 			command.getType() == BWAPI::UnitCommandTypes::Build ||
 			command.getType() == BWAPI::UnitCommandTypes::Build_Addon ||
@@ -208,15 +222,13 @@ int InformationManager::getUsedSupply(bool inProgress)
 
 	if (!inProgress) { return usedSupply / 2; }
 
-	for (auto& unit : BWAPI::Broodwar->self()->getUnits())
+	for (BWAPI::Unit unit : BWAPI::Broodwar->self()->getUnits())
 	{
 		if (!unit) { continue; }
 
 		if (!unit->exists() || !unit->isCompleted()) { continue; }
 
-		const BWAPI::UnitCommand& command = unit->getLastCommand();
-		if (command.getType() != BWAPI::UnitCommandTypes::Build) { continue; }
-
+		const BWAPI::UnitCommand command = unit->getLastCommand();
 		usedSupply += command.getUnitType().supplyRequired();
 	}
 
@@ -232,7 +244,7 @@ int InformationManager::getTotalSupply(bool inProgress)
 	if (!inProgress) { return totalSupply / 2; }
 
 	// if we do care about supply in progress, check all the currently constructing units if they will add supply
-	for (auto& unit : BWAPI::Broodwar->self()->getUnits())
+	for (BWAPI::Unit unit : BWAPI::Broodwar->self()->getUnits())
 	{
 		if (!unit) { continue; }
 
@@ -244,13 +256,13 @@ int InformationManager::getTotalSupply(bool inProgress)
 	}
 
 	// one last tricky case: if a unit is currently on its way to build a supply provider, add it
-	for (auto& unit : BWAPI::Broodwar->self()->getUnits())
+	for (BWAPI::Unit unit : BWAPI::Broodwar->self()->getUnits())
 	{
 
 		if (!unit) { return false; }
 
 		// get the last command given to the unit
-		const BWAPI::UnitCommand& command = unit->getLastCommand();
+		const BWAPI::UnitCommand command = unit->getLastCommand();
 
 		// if it's not a build command we can ignore it
 		if (command.getType() != BWAPI::UnitCommandTypes::Build) { continue; }
