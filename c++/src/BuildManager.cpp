@@ -7,7 +7,6 @@
 BuildManager::BuildManager()
 {
 	m_buildingsInProgress = std::map<BWAPI::UnitType, std::pair<int, int>>();
-
 }
 
 void BuildManager::onStart()
@@ -44,6 +43,8 @@ bool BuildManager::Build(BWAPI::Position pos, BWAPI::UnitType type)
 {
 	if (!type) { return false; }
 
+	if (!type.isBuilding()) { return false; }
+
 	if (BuildManager::isBuildInProgress(type)) { return true; }
 
 	if (!InformationManager::Instance().hasEnoughResources(type)) { return false; }
@@ -58,6 +59,9 @@ bool BuildManager::Build(BWAPI::Position pos, BWAPI::UnitType type)
 
 	BWAPI::Unit builder = BuildManager::getBuildUnit(buildPos, builderType);
 	if (!builder) { return false; }
+
+	BWAPI::UnitCommand command = builder->getLastCommand();
+	if (command.getType() == BWAPI::UnitCommandTypes::Build && command.getUnitType() == type) { return true; }
 
 	const bool build = builder->build(type, buildPos);
 	if (build)
@@ -134,7 +138,7 @@ void BuildManager::trackBuilds()
 		UnitManager::Instance().setOrder(unit->getID(), UnitOrder::COLLECT_MINERALS);
 	}
 
-	for (auto item : toRemove)
+	for (BWAPI::UnitType item : toRemove)
 	{
 		m_buildingsInProgress.erase(item);
 	}
