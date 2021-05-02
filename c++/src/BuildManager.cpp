@@ -117,7 +117,7 @@ void BuildManager::trackBuilds()
 
 		if (!unit) { continue; }
 
-		if (!unit->exists() || !unit->isCompleted())
+		if (!unit->exists() || !unit->isCompleted() || unit->getLastCommand().getType() != BWAPI::UnitCommandTypes::Build)
 		{
 			toRemove.push_back(it->first);
 			UnitManager::Instance().setOrder(unit->getID(), UnitOrder::COLLECT_MINERALS);
