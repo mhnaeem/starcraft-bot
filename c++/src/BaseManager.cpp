@@ -103,15 +103,26 @@ void BaseManager::updateChokePoints()
 {
 	m_chokePoints.clear();
 
-	for (int regionID : m_regions)
+	auto updateChokePointsWithXNeighbours = [&](int neighbours)
 	{
-		BWAPI::Region region = BWAPI::Broodwar->getRegion(regionID);
-		if (!region) { continue; }
-
-		if (region->getDefensePriority() == 2 && region->getNeighbors().size() >= 6)
+		for (int regionID : m_regions)
 		{
-			m_chokePoints.push_back(regionID);
+			BWAPI::Region region = BWAPI::Broodwar->getRegion(regionID);
+			if (!region) { continue; }
+
+			if (region->getDefensePriority() == 2 && region->getNeighbors().size() >= neighbours)
+			{
+				m_chokePoints.push_back(regionID);
+			}
 		}
+	};
+
+	int i = 7;
+	while (m_chokePoints.empty())
+	{
+		i--;
+		if (i == 0) { break; }
+		updateChokePointsWithXNeighbours(i);
 	}
 }
 
