@@ -33,9 +33,8 @@
 
 # exclude starcraft folder
 starcraft
-visualstudio
-.vs
-**/.vs
-c++/visualstudio/*
-c++/visualstudio/.vs/StartCraft/v16/.suo
-c++/visualstudio/.vs/StartCraft/v16/Browse.VC.db
+c++/visualstudio/.vs
+c++/visualstudio/Debug
+c++/visualstudio/Release
+bin/StarterBot_d.ilk
+bin/StarterBot_d.pdb
