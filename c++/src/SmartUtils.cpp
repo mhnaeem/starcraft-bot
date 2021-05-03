@@ -105,6 +105,14 @@ BWAPI::Unitset SmartUtils::SmartDetectEnemy(BWAPI::Unit unit)
 	}
 }
 
+BWAPI::Unitset SmartUtils::SmartDetectEnemy(int range, BWAPI::Unit unit)
+{
+	if (unit)
+	{
+		return unit->getUnitsInRadius(range, BWAPI::Filter::IsEnemy && BWAPI::Filter::Exists && BWAPI::Filter::IsCompleted);
+	}
+}
+
 bool SmartUtils::SmartRightClick(BWAPI::Unit unit, BWAPI::Unit target)
 {
 	// if there's no valid unit, ignore the command

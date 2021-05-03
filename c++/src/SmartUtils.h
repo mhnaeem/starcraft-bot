@@ -15,6 +15,7 @@ namespace SmartUtils
 	bool              SmartTrain(BWAPI::UnitType type, BWAPI::Unit target);
 	bool              HasAttackingEnemies(BWAPI::Region region);
 	BWAPI::Unitset    SmartDetectEnemy(BWAPI::Unit unit);
+	BWAPI::Unitset    SmartDetectEnemy(int range, BWAPI::Unit unit);
 	BWAPI::Unit       GetClosestUnitTo(BWAPI::Position p, const BWAPI::Unitset& units);
 	BWAPI::Unit       GetClosestUnitTo(BWAPI::Unit unit, const BWAPI::Unitset& units);
 };

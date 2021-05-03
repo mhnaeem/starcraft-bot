@@ -4,19 +4,21 @@
 #include "MapTools.h"
 #include "InformationManager.h"
 #include "SmartUtils.h"
+#include "BuildManager.h"
 #include <algorithm>
 #include <cmath>
 
 UnitManager::UnitManager()
 {
 	m_unitOrders = std::map<int, UnitOrder>();
+	m_campers = std::set<int>();
 }
 
 void UnitManager::onStart()
 {
 	m_unitOrders.clear();
+	m_campers.clear();
 	m_scoutConfusionAngle = 30.0;
-
 	setupScouts();
 }
 
@@ -29,8 +31,10 @@ void UnitManager::onFrame()
 void UnitManager::runOrders()
 {
 	BWAPI::Unitset myUnits = BWAPI::Broodwar->self()->getUnits();
-	for (auto unit : myUnits)
+	for (BWAPI::Unit unit : myUnits)
 	{
+		if (!unit) { continue; }
+
 		UnitOrder order = m_unitOrders[unit->getID()];
 		switch (order)
 		{
@@ -45,6 +49,9 @@ void UnitManager::runOrders()
 			break;
 		case UnitOrder::COLLECT_GAS:
 			collectGas(unit);
+			break;
+		case UnitOrder::CAMP:
+			camp(unit);
 			break;
 		default:
 			break;
@@ -74,7 +81,8 @@ void UnitManager::idleWorkersCollectMinerals()
 			gasCollectors++;
 		}
 
-		if (worker->isIdle() && m_unitOrders[worker->getID()] != UnitOrder::SCOUT && m_unitOrders[worker->getID()] != UnitOrder::SCOUT_CONFUSION_MICRO)
+		UnitOrder command = m_unitOrders[worker->getID()];
+		if (worker->isIdle() && command != UnitOrder::SCOUT && command != UnitOrder::SCOUT_CONFUSION_MICRO && command != UnitOrder::CAMP)
 		{
 			m_unitOrders[worker->getID()] = UnitOrder::COLLECT_MINERALS;
 		}
@@ -212,6 +220,7 @@ bool UnitManager::performScouting(BWAPI::Unit scout)
 		{
 			InformationManager::Instance().addEnemyBase(enemyBase->getPosition());
 			m_unitOrders[scout->getID()] = UnitOrder::SCOUT_CONFUSION_MICRO;
+			UnitManager::sendCamper();
 			return false;
 		}
 	}
@@ -313,4 +322,135 @@ void UnitManager::attack()
 			SmartUtils::SmartMove(unit, enemyLocation);
 		}
 	}
+}
+
+void UnitManager::camp(BWAPI::Unit unit)
+{
+	if (!unit || !unit->exists() || !unit->isCompleted()) { return; }
+
+	if (m_centerPosition == BWAPI::Positions::Invalid)
+	{
+		std::vector<BaseManager> enemyBases = InformationManager::Instance().getEnemyBases();
+		if (enemyBases.empty()) { return; }
+
+		std::vector<int> enemyChokepoints = enemyBases[0].getChokePoints();
+		if (enemyChokepoints.empty()) { return; }
+
+		BWAPI::Region enemyChokepoint = BWAPI::Broodwar->getRegion(enemyChokepoints[0]);
+		if (!enemyChokepoint) { return; }
+
+		m_centerPosition = enemyChokepoint->getCenter();
+		if (!m_centerPosition) { return; }
+	}
+
+	BWAPI::Unitset enemyUnits = SmartUtils::SmartDetectEnemy(300, unit);
+	if (!enemyUnits.empty())
+	{
+		BWAPI::Unit enemy = enemyUnits.getClosestUnit();
+		if (enemy && enemy->exists() && unit->getDistance(enemy->getPosition()) > enemy->getDistance(m_centerPosition))
+		{
+			m_centerPosition = unit->getPosition();
+		}
+	}
+
+	if (m_centerPosition.getDistance(unit->getPosition()) >= 300)
+	{
+		SmartUtils::SmartMove(unit, m_centerPosition);
+		return;
+	}
+
+	BWAPI::Unit pylon = nullptr;
+	BWAPI::Unitset units = unit->getUnitsInRadius(300);
+	for (BWAPI::Unit u : units)
+	{
+		if (!u) { continue; }
+
+		if (u->getType() == BWAPI::UnitTypes::Protoss_Pylon)
+		{
+			pylon = u;
+			break;
+		}
+	}
+
+	if (!pylon)
+	{
+		BuildManager::Instance().Build(unit->getPosition(), unit, BWAPI::UnitTypes::Protoss_Pylon);
+		return;
+	}
+
+	BuildManager::Instance().Build(pylon->getPosition(), unit, BWAPI::UnitTypes::Protoss_Photon_Cannon);
+}
+
+BWAPI::Unit UnitManager::getBuildUnit(BWAPI::UnitType builderType)
+{
+	std::vector<int> units = InformationManager::Instance().getAllUnitsOfType(builderType);
+
+	for (int unitID : units)
+	{
+		BWAPI::Unit unit = BWAPI::Broodwar->getUnit(unitID);
+		if (!unit || !unit->exists() || !unit->isCompleted())
+		{
+			continue;
+		}
+
+		const UnitOrder currentOrder = UnitManager::Instance().getOrder(unit->getID());
+		if (currentOrder == UnitOrder::COLLECT_MINERALS)
+		{
+			return unit;
+		}
+	}
+
+	return nullptr;
+}
+
+void UnitManager::sendCamper()
+{
+	BWAPI::Unit camper = UnitManager::getBuildUnit(BWAPI::Broodwar->self()->getRace().getWorker());
+	if (!camper) { return; }
+
+	m_unitOrders[camper->getID()] = UnitOrder::CAMP;
+	m_campers.insert(camper->getID());
+}
+
+bool UnitManager::isSomeoneCamping()
+{
+	for (int unitID : InformationManager::Instance().getAllUnitsOfType(BWAPI::Broodwar->self()->getRace().getWorker()))
+	{
+		BWAPI::Unit unit = BWAPI::Broodwar->getUnit(unitID);
+
+		if (!unit || !unit->exists() || !unit->isCompleted())
+		{
+			continue;
+		}
+
+		UnitOrder order = m_unitOrders[unit->getID()];
+
+		if (order == UnitOrder::CAMP)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void UnitManager::onDead(BWAPI::Unit unit)
+{
+	if (!unit) { return; }
+
+	UnitOrder order = m_unitOrders[unit->getID()];
+
+	if (order == UnitOrder::CAMP)
+	{
+		UnitManager::sendCamper();
+	}
+}
+
+bool UnitManager::isCamper(int unitID)
+{
+	std::set<int>::iterator it = m_campers.find(unitID);
+	if (it == m_campers.end()) {
+		return false;
+	}
+	return true;
 }

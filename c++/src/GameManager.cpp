@@ -38,11 +38,11 @@ void GameManager::onFrame()
     {
         base.onFrame();
     }
+    UnitManager::Instance().onFrame();
     GameManager::maintainSupplyCapacity();
     GameManager::maintainGas();
     GameManager::followStrategy(GameManager::balancedStrategy());
     GameManager::rally();
-    UnitManager::Instance().onFrame();
 }
 
 void GameManager::maintainSupplyCapacity()
@@ -66,9 +66,9 @@ void GameManager::maintainGas()
     const BWAPI::UnitType refineryType = BWAPI::Broodwar->self()->getRace().getRefinery();
     const int numOfRefineries = InformationManager::Instance().getCountOfType(refineryType);
 
-    if (totalSupply <= 25 || numOfRefineries != 0) { return; }
+    if (totalSupply <= 30 || numOfRefineries != 0) { return; }
 
-    BWAPI::Unit geyser = BWAPI::Broodwar->getGeysers().getClosestUnit();
+    BWAPI::Unit geyser = SmartUtils::GetClosestUnitTo(BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation()), BWAPI::Broodwar->getGeysers());
     if (!geyser) { return; }
 
     BuildManager::Instance().Build(geyser->getPosition(), refineryType);
@@ -140,9 +140,8 @@ std::vector<std::pair<BWAPI::UnitType, int>> GameManager::balancedStrategy()
         strat.push_back(std::pair<BWAPI::UnitType, int>(type, count));
     };
 
-    add(BWAPI::UnitTypes::Protoss_Zealot, 10);
-    add(BWAPI::UnitTypes::Protoss_Photon_Cannon, 10);
-    add(BWAPI::UnitTypes::Protoss_Dragoon, 10);
+    add(BWAPI::UnitTypes::Protoss_Forge, 1);
+    add(BWAPI::UnitTypes::Protoss_Pylon, 1);
 
     return strat;
 }

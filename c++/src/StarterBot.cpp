@@ -2,6 +2,7 @@
 #include "DrawTools.h"
 #include "MapTools.h"
 #include "InformationManager.h"
+#include "UnitManager.h"
 #include "BaseManager.h"
 #include <BWAPI.h>
 
@@ -64,7 +65,7 @@ void StarterBot::drawDebugInformation()
 // Called whenever a unit is destroyed, with a pointer to the unit
 void StarterBot::onUnitDestroy(BWAPI::Unit unit)
 {
-	
+    UnitManager::Instance().onDead(unit);
 }
 
 // Called whenever a unit is morphed, with a pointer to the unit
