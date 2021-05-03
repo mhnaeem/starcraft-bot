@@ -45,20 +45,29 @@ bool BuildManager::Build(BWAPI::Position pos, BWAPI::UnitType type)
 
 	if (!type.isBuilding()) { return false; }
 
+	const BWAPI::UnitType builderType = type.whatBuilds().first;
+	if (!builderType) { return false; }
+
+	BWAPI::Unit builder = UnitManager::Instance().getBuildUnit(builderType);
+	if (!builder) { return false; }
+
+	return BuildManager::Build(pos, builder, type);
+}
+
+bool BuildManager::Build(BWAPI::Position pos, BWAPI::Unit builder, BWAPI::UnitType type)
+{
+	if (!type || !pos || !builder || !builder->exists() || !builder->isCompleted()) { return false; }
+
+	if (!type.isBuilding()) { return false; }
+
 	if (BuildManager::isBuildInProgress(type)) { return true; }
 
 	if (!InformationManager::Instance().hasEnoughResources(type)) { return false; }
-
-	const BWAPI::UnitType builderType = type.whatBuilds().first;
-	if (!builderType) { return false; }
 
 	const int maxBuildRange = 100;
 	const bool buildingNearCreep = type.requiresCreep();
 	const BWAPI::TilePosition desiredPos = BWAPI::TilePosition(pos);
 	const BWAPI::TilePosition buildPos = BWAPI::Broodwar->getBuildLocation(type, desiredPos, maxBuildRange, buildingNearCreep);
-
-	BWAPI::Unit builder = BuildManager::getBuildUnit(buildPos, builderType);
-	if (!builder) { return false; }
 
 	BWAPI::UnitCommand command = builder->getLastCommand();
 	if (command.getType() == BWAPI::UnitCommandTypes::Build && command.getUnitType() == type) { return true; }
@@ -73,28 +82,6 @@ bool BuildManager::Build(BWAPI::Position pos, BWAPI::UnitType type)
 
 	BWAPI::Broodwar->printf("%s %s", build ? "Started Building" : "Couldn't Build", type.getName().c_str());
 	return build;
-}
-
-BWAPI::Unit BuildManager::getBuildUnit(BWAPI::TilePosition buildPos, BWAPI::UnitType builderType)
-{
-	std::vector<int> units = InformationManager::Instance().getAllUnitsOfType(builderType);
-
-	for (int unitID : units)
-	{
-		BWAPI::Unit unit = BWAPI::Broodwar->getUnit(unitID);
-		if (!unit || !unit->exists() || !unit->isCompleted())
-		{
-			continue;
-		}
-
-		const UnitOrder currentOrder = UnitManager::Instance().getOrder(unit->getID());
-		if (currentOrder == UnitOrder::COLLECT_MINERALS)
-		{
-			return unit;
-		}
-	}
-
-	return nullptr;
 }
 
 bool BuildManager::isBuildInProgress(BWAPI::UnitType type)
@@ -135,7 +122,13 @@ void BuildManager::trackBuilds()
 		}
 
 		toRemove.push_back(it->first);
-		UnitManager::Instance().setOrder(unit->getID(), UnitOrder::COLLECT_MINERALS);
+
+		UnitOrder order = UnitOrder::COLLECT_MINERALS;
+		if (UnitManager::Instance().isCamper(unit->getID()))
+		{
+			order = UnitOrder::CAMP;
+		}
+		UnitManager::Instance().setOrder(unit->getID(), order);
 	}
 
 	for (BWAPI::UnitType item : toRemove)
