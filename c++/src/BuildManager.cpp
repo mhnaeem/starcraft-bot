@@ -110,6 +110,7 @@ void BuildManager::onCreate(BWAPI::Unit unit)
 	}
 
 	int builder = m_buildingsInProgress[type];
+	m_buildingsInProgress.erase(type);
 
 	UnitOrder order = UnitOrder::COLLECT_MINERALS;
 	if (UnitManager::Instance().isCamper(builder))
