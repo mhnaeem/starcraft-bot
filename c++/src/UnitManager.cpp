@@ -469,7 +469,13 @@ void UnitManager::onDead(BWAPI::Unit unit)
 {
 	if (!unit) { return; }
 
-	UnitOrder order = m_unitOrders[unit->getID()];
+	int unitID = unit->getID();
+	UnitOrder order = m_unitOrders[unitID];
+
+	if (UnitManager::isCamper(unitID))
+	{
+		m_campers.erase(unitID);
+	}
 
 	if (order == UnitOrder::CAMP)
 	{
