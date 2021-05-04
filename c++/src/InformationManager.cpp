@@ -25,8 +25,8 @@ void InformationManager::onFrame()
 	m_totalSupply = InformationManager::getTotalSupply(false);
 	m_usedSupply = InformationManager::getUsedSupply(false);
 
-	m_gas = InformationManager::getGas(true);;
-	m_mineral = InformationManager::getMinerals(true);
+	m_gas = InformationManager::getGas(false);
+	m_mineral = InformationManager::getMinerals(false);
 }
 
 const std::vector<BaseManager> InformationManager::getEnemyBases() const
@@ -64,7 +64,7 @@ void InformationManager::parseUnitsInfo()
 	m_unitsMap.clear();
 	m_unitCountMap.clear();
 
-	BWAPI::Unitset myUnits = m_player->getUnits();
+	BWAPI::Unitset myUnits = BWAPI::Broodwar->self()->getUnits();
 	for (BWAPI::Unit unit : myUnits)
 	{
 		if (!unit) { continue; }

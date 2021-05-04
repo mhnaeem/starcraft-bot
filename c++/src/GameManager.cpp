@@ -45,7 +45,7 @@ void GameManager::onFrame()
 
 void GameManager::maintainSupplyCapacity()
 {
-    const int totalSupply = InformationManager::Instance().totalSupply();
+    const int totalSupply = InformationManager::Instance().getTotalSupply(true);
     const int usedSupply = InformationManager::Instance().usedSupply();
     const int unusedSupply = totalSupply - usedSupply;
 

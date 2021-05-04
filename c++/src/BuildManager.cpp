@@ -116,6 +116,11 @@ void BuildManager::trackBuilds()
 			continue;
 		}
 
+		if (it->first == BWAPI::UnitTypes::Protoss_Photon_Cannon)
+		{
+			std::cout << "num of canon: " << InformationManager::Instance().getCountOfType(it->first);
+		}
+
 		if (InformationManager::Instance().getCountOfType(it->first) <= it->second.second)
 		{
 			continue;
