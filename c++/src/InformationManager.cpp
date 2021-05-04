@@ -22,8 +22,8 @@ void InformationManager::onFrame()
 {
 	InformationManager::parseUnitsInfo();
 
-	m_totalSupply = InformationManager::getTotalSupply(true);
-	m_usedSupply = InformationManager::getUsedSupply(true);
+	m_totalSupply = InformationManager::getTotalSupply(false);
+	m_usedSupply = InformationManager::getUsedSupply(false);
 
 	m_gas = InformationManager::getGas(true);;
 	m_mineral = InformationManager::getMinerals(true);
@@ -166,9 +166,7 @@ int InformationManager::getMinerals(bool inProgress)
 
 	for (BWAPI::Unit unit : BWAPI::Broodwar->self()->getUnits())
 	{
-		if (!unit) { continue; }
-
-		if (!unit->exists() || !unit->isCompleted()) { continue; }
+		if (!unit || !unit->exists() || !unit->isCompleted()) { continue; }
 
 		const BWAPI::UnitCommand command = unit->getLastCommand();
 		if (
@@ -195,9 +193,7 @@ int InformationManager::getGas(bool inProgress)
 
 	for (BWAPI::Unit unit : BWAPI::Broodwar->self()->getUnits())
 	{
-		if (!unit) { continue; }
-
-		if (!unit->exists() || !unit->isCompleted()) { continue; }
+		if (!unit || !unit->exists() || !unit->isCompleted()) { continue; }
 
 		const BWAPI::UnitCommand command = unit->getLastCommand();
 		if (
@@ -224,11 +220,12 @@ int InformationManager::getUsedSupply(bool inProgress)
 
 	for (BWAPI::Unit unit : BWAPI::Broodwar->self()->getUnits())
 	{
-		if (!unit) { continue; }
-
-		if (!unit->exists() || !unit->isCompleted()) { continue; }
+		if (!unit || !unit->exists() || !unit->isCompleted()) { continue; }
 
 		const BWAPI::UnitCommand command = unit->getLastCommand();
+
+		if (command.getType() != BWAPI::UnitCommandTypes::Train) { continue; }
+
 		usedSupply += command.getUnitType().supplyRequired();
 	}
 
