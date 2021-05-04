@@ -35,6 +35,7 @@ class UnitManager
 	void    camp(BWAPI::Unit unit);
 	void    sendCamper();
 	bool    isSomeoneCamping();
+	void    printInfo();
 
 public:
 

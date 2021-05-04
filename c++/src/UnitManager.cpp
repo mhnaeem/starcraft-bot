@@ -26,6 +26,7 @@ void UnitManager::onFrame()
 {
 	idleWorkersCollectMinerals();
 	runOrders();
+	printInfo();
 }
 
 void UnitManager::runOrders()
@@ -326,21 +327,45 @@ void UnitManager::attack()
 
 void UnitManager::camp(BWAPI::Unit unit)
 {
+	auto useFallbackPosition = [&]()
+	{
+		std::vector<BaseManager> enemyBases = InformationManager::Instance().getEnemyBases();
+		if (enemyBases.empty()) { return; }
+
+		m_centerPosition = enemyBases[0].getLocation();
+	};
+
 	if (!unit || !unit->exists() || !unit->isCompleted()) { return; }
 
 	if (m_centerPosition == BWAPI::Positions::Invalid)
 	{
 		std::vector<BaseManager> enemyBases = InformationManager::Instance().getEnemyBases();
-		if (enemyBases.empty()) { return; }
+		if (enemyBases.empty())
+		{
+			useFallbackPosition();
+			return;
+		}
 
 		std::vector<int> enemyChokepoints = enemyBases[0].getChokePoints();
-		if (enemyChokepoints.empty()) { return; }
+		if (enemyChokepoints.empty())
+		{
+			useFallbackPosition();
+			return;
+		}
 
 		BWAPI::Region enemyChokepoint = BWAPI::Broodwar->getRegion(enemyChokepoints[0]);
-		if (!enemyChokepoint) { return; }
+		if (!enemyChokepoint)
+		{
+			useFallbackPosition();
+			return;
+		}
 
 		m_centerPosition = enemyChokepoint->getCenter();
-		if (!m_centerPosition) { return; }
+		if (!m_centerPosition)
+		{
+			useFallbackPosition();
+			return;
+		}
 	}
 
 	BWAPI::Unitset enemyUnits = SmartUtils::SmartDetectEnemy(300, unit);
@@ -375,6 +400,12 @@ void UnitManager::camp(BWAPI::Unit unit)
 	if (!pylon)
 	{
 		BuildManager::Instance().Build(unit->getPosition(), unit, BWAPI::UnitTypes::Protoss_Pylon);
+		return;
+	}
+
+	if (InformationManager::Instance().getCountOfType(BWAPI::UnitTypes::Protoss_Forge) == 0)
+	{
+		BuildManager::Instance().Build(BWAPI::UnitTypes::Protoss_Forge);
 		return;
 	}
 
@@ -453,4 +484,38 @@ bool UnitManager::isCamper(int unitID)
 		return false;
 	}
 	return true;
+}
+
+void UnitManager::printInfo()
+{
+	for (auto m : m_campers)
+	{
+		BWAPI::Unit u = BWAPI::Broodwar->getUnit(m);
+		if (!u) { continue; }
+		std::string x = "";
+
+		UnitOrder order = m_unitOrders[u->getID()];
+		switch (order)
+		{
+		case UnitOrder::SCOUT:
+			x = "scout ";
+			break;
+		case UnitOrder::COLLECT_MINERALS:
+			x = "mineral ";
+			break;
+		case UnitOrder::SCOUT_CONFUSION_MICRO:
+			x = "scout mirco ";
+			break;
+		case UnitOrder::COLLECT_GAS:
+			x = "gass ";
+			break;
+		case UnitOrder::CAMP:
+			x = "camp  ";
+			break;
+		default:
+			break;
+		}
+
+		std::cout << u->getID() << " " << u->getLastCommand().getType().getName() << " " << u->getLastCommand().getUnitType().getName() << " " << x << "\n";
+	}
 }
