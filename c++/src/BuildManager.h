@@ -5,8 +5,8 @@
 
 class BuildManager
 {
-    // <building type, <unitID, oldBuildingCount>>
-    std::map<BWAPI::UnitType, std::pair<int, int>>          m_buildingsInProgress;
+    // <building type, unitID>
+    std::map<BWAPI::UnitType, int>          m_buildingsInProgress;
 
     BuildManager();
 
@@ -23,6 +23,7 @@ public:
 
     void                           onStart();
     void                           onFrame();
+    void                           onCreate(BWAPI::Unit unit);
     bool                           Build(BaseManager* baseManager, BWAPI::UnitType type);
     bool                           Build(BWAPI::Position pos, BWAPI::UnitType type);
     bool                           Build(BWAPI::Position pos, BWAPI::Unit builder, BWAPI::UnitType type);
