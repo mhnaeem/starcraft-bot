@@ -10,7 +10,6 @@ class BuildManager
 
     BuildManager();
 
-    BWAPI::Unit   getBuildUnit(BWAPI::TilePosition buildPos, BWAPI::UnitType builderType);
     void          trackBuilds();
 
 public:
