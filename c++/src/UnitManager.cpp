@@ -26,6 +26,7 @@ void UnitManager::onFrame()
 {
 	idleWorkersCollectMinerals();
 	runOrders();
+	replenishCampers();
 	//printInfo();
 }
 
@@ -68,7 +69,12 @@ void UnitManager::runOrders()
 
 void UnitManager::idleWorkersCollectMinerals()
 {
-	int gasCollectors = 0;
+	int gasCollectors = UnitManager::unitsWithOrder(UnitOrder::COLLECT_GAS);
+	int maxGasCollectors = 2;
+	if (InformationManager::Instance().getGas() >= 600)
+	{
+		maxGasCollectors--;
+	}
 
 	std::vector<int> workers = InformationManager::Instance().getAllUnitsOfType(BWAPI::Broodwar->self()->getRace().getWorker());
 	for (int workerID : workers)
@@ -83,11 +89,6 @@ void UnitManager::idleWorkersCollectMinerals()
 			continue;
 		}
 
-		if(m_unitOrders[worker->getID()] == UnitOrder::COLLECT_GAS)
-		{
-			gasCollectors++;
-		}
-
 		UnitOrder command = m_unitOrders[worker->getID()];
 		if (worker->isIdle() && command != UnitOrder::SCOUT && command != UnitOrder::SCOUT_CONFUSION_MICRO && command != UnitOrder::CAMP)
 		{
@@ -95,25 +96,36 @@ void UnitManager::idleWorkersCollectMinerals()
 		}
 	}
 
-	if (gasCollectors <= 2 && InformationManager::Instance().getCountOfType(BWAPI::Broodwar->self()->getRace().getRefinery()) > 0)
+	if (InformationManager::Instance().getCountOfType(BWAPI::Broodwar->self()->getRace().getRefinery()) == 0) { return; }
+	
+	for (int workerID : workers)
 	{
-		for (int workerID : workers)
-		{
-			BWAPI::Unit worker = BWAPI::Broodwar->getUnit(workerID);
-			if (!worker || !worker->exists() || !worker->isCompleted()) { return; }
+		BWAPI::Unit worker = BWAPI::Broodwar->getUnit(workerID);
+		if (!worker || !worker->exists() || !worker->isCompleted()) { return; }
 
+		if (gasCollectors < maxGasCollectors)
+		{
 			if (m_unitOrders[worker->getID()] == UnitOrder::COLLECT_MINERALS)
 			{
 				m_unitOrders[worker->getID()] = UnitOrder::COLLECT_GAS;
 				gasCollectors++;
 			}
-			
-			if (gasCollectors >= 2)
+		}
+		else if (gasCollectors > maxGasCollectors)
+		{
+			if (m_unitOrders[worker->getID()] == UnitOrder::COLLECT_GAS)
 			{
-				break;
+				m_unitOrders[worker->getID()] = UnitOrder::COLLECT_MINERALS;
+				gasCollectors--;
 			}
 		}
+
+		if (gasCollectors == maxGasCollectors)
+		{
+			break;
+		}
 	}
+
 }
 
 void UnitManager::setupScouts()
@@ -424,6 +436,14 @@ void UnitManager::camp(BWAPI::Unit unit, bool move)
 		return;
 	}
 
+	int numOfCannons = InformationManager::Instance().getCountOfType(BWAPI::UnitTypes::Protoss_Photon_Cannon);
+	int numOfPylons = InformationManager::Instance().getCountOfType(BWAPI::UnitTypes::Protoss_Pylon);
+	if (numOfCannons % 5 == 0 && numOfCannons > 0 && numOfPylons % 5 != 3)
+	{
+		BuildManager::Instance().Build(pylon->getPosition(), unit, BWAPI::UnitTypes::Protoss_Pylon);
+		return;
+	}
+
 	BuildManager::Instance().Build(pylon->getPosition(), unit, BWAPI::UnitTypes::Protoss_Photon_Cannon);
 }
 
@@ -486,11 +506,7 @@ void UnitManager::onDead(BWAPI::Unit unit)
 
 	int unitID = unit->getID();
 	UnitOrder order = m_unitOrders[unitID];
-
-	if (UnitManager::isCamper(unitID))
-	{
-		m_campers.erase(unitID);
-	}
+	m_campers.erase(unitID);
 
 	if (order == UnitOrder::CAMP)
 	{
@@ -543,7 +559,7 @@ void UnitManager::printInfo()
 
 void UnitManager::rally(BWAPI::Unit unit)
 {
-	if (!unit || !unit->exists() || !unit->isCompleted() || unit->getType().isResourceDepot() || unit->getType().isWorker() || !unit->canSetRallyPosition()) { return; }
+	if (!unit || !unit->exists() || !unit->isCompleted() || unit->getType() != BWAPI::UnitTypes::Protoss_Gateway) { return; }
 
 	std::vector<BaseManager> bases = InformationManager::Instance().getBases();
 	if (bases.empty()) { return; }
@@ -564,4 +580,59 @@ void UnitManager::onCreate(BWAPI::Unit unit)
 	if (!unit || !unit->exists() || !unit->isCompleted() || unit->getType().isResourceDepot() || unit->getType().isWorker() || !unit->canSetRallyPosition()) { return; }
 
 	m_unitOrders[unit->getID()] = UnitOrder::RALLY;
+}
+
+void UnitManager::replenishCampers()
+{
+	std::cout << "Size: " << m_campers.size() << "\n";
+
+	if (InformationManager::Instance().getEnemyBases().empty()) { return; }
+
+	if (m_campers.empty())
+	{
+		UnitManager::sendCamper();
+		return;
+	}
+
+	std::vector<int> toRemove;
+
+	int numOfCampers = 0;
+	for (int camperID : m_campers)
+	{
+		BWAPI::Unit camper = BWAPI::Broodwar->getUnit(camperID);
+		if (!camper || !camper->exists() || camper->isStuck() || camper->isGatheringMinerals() || camper->isGatheringGas() || camper->getLastCommand().getType() == BWAPI::UnitCommandTypes::Right_Click_Unit)
+		{
+			toRemove.push_back(camperID);
+			m_unitOrders[camperID] = UnitOrder::COLLECT_MINERALS;
+			continue;
+		}
+
+		numOfCampers++;
+	}
+
+	for (int rem : toRemove)
+	{
+		m_campers.erase(rem);
+	}
+
+	if (numOfCampers < 1)
+	{
+		UnitManager::sendCamper();
+	}
+}
+
+int UnitManager::unitsWithOrder(UnitOrder order)
+{
+	int returnableCount = 0;
+
+	std::map<int, UnitOrder>::iterator it;
+	for (it = m_unitOrders.begin(); it != m_unitOrders.end(); it++)
+	{
+		if (it->second == order)
+		{
+			returnableCount++;
+		}
+	}
+
+	return returnableCount;
 }

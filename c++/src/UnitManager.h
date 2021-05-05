@@ -39,6 +39,8 @@ class UnitManager
 	void    sendCamper();
 	bool    isSomeoneCamping();
 	void    printInfo();
+	void    replenishCampers();
+	int     unitsWithOrder(UnitOrder order);
 
 public:
 

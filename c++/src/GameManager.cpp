@@ -65,7 +65,7 @@ void GameManager::maintainGas()
     const BWAPI::UnitType refineryType = BWAPI::Broodwar->self()->getRace().getRefinery();
     const int numOfRefineries = InformationManager::Instance().getCountOfType(refineryType);
 
-    if (totalSupply <= 100 || numOfRefineries != 0) { return; }
+    if (totalSupply <= 40 || numOfRefineries != 0) { return; }
 
     BWAPI::Unit geyser = SmartUtils::GetClosestUnitTo(BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation()), BWAPI::Broodwar->getGeysers());
     if (!geyser) { return; }
