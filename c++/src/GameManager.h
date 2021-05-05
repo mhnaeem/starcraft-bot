@@ -8,7 +8,6 @@ class GameManager
 {
 	void    maintainSupplyCapacity();
 	void    maintainGas();
-	void    rally();
 
 public:
 
@@ -16,6 +15,6 @@ public:
 
 	void                                               onStart();
 	void                                               onFrame();
-	std::vector<std::pair<BWAPI::UnitType, int>>       balancedStrategy();
+	void                                               balancedStrategy();
 	void                                               followStrategy(std::vector<std::pair<BWAPI::UnitType, int>> strategy);
 };
