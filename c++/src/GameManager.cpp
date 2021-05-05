@@ -143,6 +143,12 @@ void GameManager::balancedStrategy()
     add(BWAPI::UnitTypes::Protoss_Forge, 1);
     add(BWAPI::UnitTypes::Protoss_Gateway, 1);
     add(BWAPI::UnitTypes::Protoss_Zealot, 20);
+    add(BWAPI::UnitTypes::Protoss_Dragoon, 10);
+
+    if (InformationManager::Instance().getMinerals() >= 1000 && InformationManager::Instance().getMinerals() <= 1500)
+    {
+        add(BWAPI::UnitTypes::Protoss_Gateway, 1);
+    }
 
     GameManager::followStrategy(strat);
 }

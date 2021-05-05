@@ -41,6 +41,7 @@ class UnitManager
 	void    printInfo();
 	void    replenishCampers();
 	int     unitsWithOrder(UnitOrder order);
+	void    setRallyUnits();
 
 public:
 

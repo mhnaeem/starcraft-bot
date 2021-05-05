@@ -25,8 +25,9 @@ void UnitManager::onStart()
 void UnitManager::onFrame()
 {
 	idleWorkersCollectMinerals();
-	runOrders();
 	replenishCampers();
+	setRallyUnits();
+	runOrders();
 	//printInfo();
 }
 
@@ -438,7 +439,7 @@ void UnitManager::camp(BWAPI::Unit unit, bool move)
 
 	int numOfCannons = InformationManager::Instance().getCountOfType(BWAPI::UnitTypes::Protoss_Photon_Cannon);
 	int numOfPylons = InformationManager::Instance().getCountOfType(BWAPI::UnitTypes::Protoss_Pylon);
-	if (numOfCannons % 5 == 0 && numOfCannons > 0 && numOfPylons % 5 != 3)
+	if (numOfCannons % 5 == 0 && numOfCannons > 0 && (numOfCannons - numOfPylons) >= 3)
 	{
 		BuildManager::Instance().Build(pylon->getPosition(), unit, BWAPI::UnitTypes::Protoss_Pylon);
 		return;
@@ -559,7 +560,7 @@ void UnitManager::printInfo()
 
 void UnitManager::rally(BWAPI::Unit unit)
 {
-	if (!unit || !unit->exists() || !unit->isCompleted() || unit->getType() != BWAPI::UnitTypes::Protoss_Gateway) { return; }
+	if (!unit || !unit->exists() || !unit->isCompleted() || unit->getType().isResourceDepot() || unit->getType().isWorker() || !unit->canSetRallyPosition()) { return; }
 
 	std::vector<BaseManager> bases = InformationManager::Instance().getBases();
 	if (bases.empty()) { return; }
@@ -577,9 +578,6 @@ void UnitManager::rally(BWAPI::Unit unit)
 
 void UnitManager::onCreate(BWAPI::Unit unit)
 {
-	if (!unit || !unit->exists() || !unit->isCompleted() || unit->getType().isResourceDepot() || unit->getType().isWorker() || !unit->canSetRallyPosition()) { return; }
-
-	m_unitOrders[unit->getID()] = UnitOrder::RALLY;
 }
 
 void UnitManager::replenishCampers()
@@ -635,4 +633,32 @@ int UnitManager::unitsWithOrder(UnitOrder order)
 	}
 
 	return returnableCount;
+}
+
+void UnitManager::setRallyUnits()
+{
+	std::vector<BaseManager> bases = InformationManager::Instance().getBases();
+	if (bases.empty()) { return; }
+
+	std::vector<int> chokePoints = bases[0].getChokePoints();
+	if (chokePoints.empty()) { return; }
+
+	BWAPI::Position chokePoint = BWAPI::Broodwar->getRegion(chokePoints[0])->getCenter();
+	if (!chokePoint) { return; }
+
+	std::vector<int> gateways = InformationManager::Instance().getAllUnitsOfType(BWAPI::UnitTypes::Protoss_Gateway);
+	if (gateways.empty()) { return; }
+
+	for (int unitID : gateways)
+	{
+		BWAPI::Unit gateway = BWAPI::Broodwar->getUnit(unitID);
+
+		if (!gateway || !gateway->exists() || !gateway->isCompleted()) { continue; }
+		
+		if(!gateway->canSetRallyPosition()) { continue; }
+
+		if (gateway->getRallyPosition() == chokePoint) { continue; }
+
+		gateway->setRallyPoint(chokePoint);
+	}
 }
