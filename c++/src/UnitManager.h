@@ -12,7 +12,9 @@ enum class UnitOrder
 	SCOUT_CONFUSION_MICRO,
 	BUILD,
 	CAMP,
-	SCOUT
+	CAMP_MOVE,
+	SCOUT,
+	RALLY
 };
 
 class UnitManager
@@ -32,9 +34,14 @@ class UnitManager
 	bool    collectMinerals(BWAPI::Unit worker);
 	bool    collectGas(BWAPI::Unit worker);
 	void    idleWorkersCollectMinerals();
-	void    camp(BWAPI::Unit unit);
+	void    camp(BWAPI::Unit unit, bool move = false);
+	void    rally(BWAPI::Unit unit);
 	void    sendCamper();
 	bool    isSomeoneCamping();
+	void    printInfo();
+	void    replenishCampers();
+	int     unitsWithOrder(UnitOrder order);
+	void    setRallyUnits();
 
 public:
 
@@ -47,6 +54,7 @@ public:
 	void          attack();
 	void          onFrame();
 	void          onStart();
+	void          onCreate(BWAPI::Unit unit);
 	void          onDead(BWAPI::Unit unit);
 	void          setOrder(int unitID, UnitOrder order);
 	bool          isCamper(int unitID);

@@ -22,8 +22,8 @@ void InformationManager::onFrame()
 {
 	InformationManager::parseUnitsInfo();
 
-	m_totalSupply = InformationManager::getTotalSupply(true);
-	m_usedSupply = InformationManager::getUsedSupply(true);
+	m_totalSupply = InformationManager::getTotalSupply(false);
+	m_usedSupply = InformationManager::getUsedSupply();
 
 	m_gas = InformationManager::getGas(true);;
 	m_mineral = InformationManager::getMinerals(true);
@@ -171,13 +171,7 @@ int InformationManager::getMinerals(bool inProgress)
 		if (!unit->exists() || !unit->isCompleted()) { continue; }
 
 		const BWAPI::UnitCommand command = unit->getLastCommand();
-		if (
-			command.getType() == BWAPI::UnitCommandTypes::Build ||
-			command.getType() == BWAPI::UnitCommandTypes::Build_Addon ||
-			command.getType() == BWAPI::UnitCommandTypes::Train ||
-			command.getType() == BWAPI::UnitCommandTypes::Upgrade ||
-			command.getType() == BWAPI::UnitCommandTypes::Research
-			)
+		if (command.getType() == BWAPI::UnitCommandTypes::Build && !unit->isIdle())
 		{
 			minerals -= command.getUnitType().mineralPrice();
 		}
@@ -200,13 +194,7 @@ int InformationManager::getGas(bool inProgress)
 		if (!unit->exists() || !unit->isCompleted()) { continue; }
 
 		const BWAPI::UnitCommand command = unit->getLastCommand();
-		if (
-			command.getType() == BWAPI::UnitCommandTypes::Build ||
-			command.getType() == BWAPI::UnitCommandTypes::Build_Addon ||
-			command.getType() == BWAPI::UnitCommandTypes::Train ||
-			command.getType() == BWAPI::UnitCommandTypes::Upgrade ||
-			command.getType() == BWAPI::UnitCommandTypes::Research
-		   )
+		if (command.getType() == BWAPI::UnitCommandTypes::Build && !unit->isIdle())
 		{
 			gas -= command.getUnitType().gasPrice();
 		}
@@ -216,21 +204,9 @@ int InformationManager::getGas(bool inProgress)
 	return gas;
 }
 
-int InformationManager::getUsedSupply(bool inProgress)
+int InformationManager::getUsedSupply()
 {
 	int usedSupply = BWAPI::Broodwar->self()->supplyUsed();
-
-	if (!inProgress) { return usedSupply / 2; }
-
-	for (BWAPI::Unit unit : BWAPI::Broodwar->self()->getUnits())
-	{
-		if (!unit) { continue; }
-
-		if (!unit->exists() || !unit->isCompleted()) { continue; }
-
-		const BWAPI::UnitCommand command = unit->getLastCommand();
-		usedSupply += command.getUnitType().supplyRequired();
-	}
 
 	return usedSupply / 2;
 }

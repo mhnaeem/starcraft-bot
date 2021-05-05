@@ -6,7 +6,7 @@
 
 BuildManager::BuildManager()
 {
-	m_buildingsInProgress = std::map<BWAPI::UnitType, std::pair<int, int>>();
+	m_buildingsInProgress = std::map<BWAPI::UnitType, int>();
 }
 
 void BuildManager::onStart()
@@ -77,7 +77,7 @@ bool BuildManager::Build(BWAPI::Position pos, BWAPI::Unit builder, BWAPI::UnitTy
 	{
 		InformationManager::Instance().deductResources(type);
 		UnitManager::Instance().setOrder(builder->getID(), UnitOrder::BUILD);
-		m_buildingsInProgress[type] = std::pair<int, int>(builder->getID(), InformationManager::Instance().getCountOfType(type));
+		m_buildingsInProgress[type] = builder->getID();
 	}
 
 	BWAPI::Broodwar->printf("%s %s", build ? "Started Building" : "Couldn't Build", type.getName().c_str());
@@ -88,7 +88,7 @@ bool BuildManager::isBuildInProgress(BWAPI::UnitType type)
 {
 	if (!type) { return false; }
 
-	std::map<BWAPI::UnitType, std::pair<int, int>>::iterator it = m_buildingsInProgress.find(type);
+	std::map<BWAPI::UnitType, int>::iterator it = m_buildingsInProgress.find(type);
 	if (it == m_buildingsInProgress.end()) {
 		return false;
 	}
@@ -96,16 +96,40 @@ bool BuildManager::isBuildInProgress(BWAPI::UnitType type)
 	return true;
 }
 
+void BuildManager::onCreate(BWAPI::Unit unit)
+{
+	if (!unit) { return; }
+
+	BWAPI::UnitType type = unit->getType();
+
+	if (!type.isBuilding()) { return; }
+
+	std::map<BWAPI::UnitType, int>::iterator it = m_buildingsInProgress.find(type);
+	if (it == m_buildingsInProgress.end()) {
+		return;
+	}
+
+	int builder = m_buildingsInProgress[type];
+	m_buildingsInProgress.erase(type);
+
+	UnitOrder order = UnitOrder::COLLECT_MINERALS;
+	if (UnitManager::Instance().isCamper(builder))
+	{
+		order = UnitOrder::CAMP_MOVE;
+	}
+	UnitManager::Instance().setOrder(builder, order);
+}
+
 void BuildManager::trackBuilds()
 {
 	std::vector<BWAPI::UnitType> toRemove;
-	std::map<BWAPI::UnitType, std::pair<int, int>>::iterator it;
+	std::map<BWAPI::UnitType, int>::iterator it;
 
 	for (it = m_buildingsInProgress.begin(); it != m_buildingsInProgress.end(); it++)
 	{
 		if (!it->first) { continue; }
 
-		BWAPI::Unit unit = BWAPI::Broodwar->getUnit(it->second.first);
+		BWAPI::Unit unit = BWAPI::Broodwar->getUnit(it->second);
 
 		if (!unit) { continue; }
 
@@ -115,20 +139,6 @@ void BuildManager::trackBuilds()
 			UnitManager::Instance().setOrder(unit->getID(), UnitOrder::COLLECT_MINERALS);
 			continue;
 		}
-
-		if (InformationManager::Instance().getCountOfType(it->first) <= it->second.second)
-		{
-			continue;
-		}
-
-		toRemove.push_back(it->first);
-
-		UnitOrder order = UnitOrder::COLLECT_MINERALS;
-		if (UnitManager::Instance().isCamper(unit->getID()))
-		{
-			order = UnitOrder::CAMP;
-		}
-		UnitManager::Instance().setOrder(unit->getID(), order);
 	}
 
 	for (BWAPI::UnitType item : toRemove)

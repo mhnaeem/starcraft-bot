@@ -41,13 +41,12 @@ void GameManager::onFrame()
     UnitManager::Instance().onFrame();
     GameManager::maintainSupplyCapacity();
     GameManager::maintainGas();
-    GameManager::followStrategy(GameManager::balancedStrategy());
-    GameManager::rally();
+    GameManager::balancedStrategy();
 }
 
 void GameManager::maintainSupplyCapacity()
 {
-    const int totalSupply = InformationManager::Instance().totalSupply();
+    const int totalSupply = InformationManager::Instance().getTotalSupply(true);
     const int usedSupply = InformationManager::Instance().usedSupply();
     const int unusedSupply = totalSupply - usedSupply;
 
@@ -66,7 +65,7 @@ void GameManager::maintainGas()
     const BWAPI::UnitType refineryType = BWAPI::Broodwar->self()->getRace().getRefinery();
     const int numOfRefineries = InformationManager::Instance().getCountOfType(refineryType);
 
-    if (totalSupply <= 30 || numOfRefineries != 0) { return; }
+    if (totalSupply <= 40 || numOfRefineries != 0) { return; }
 
     BWAPI::Unit geyser = SmartUtils::GetClosestUnitTo(BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation()), BWAPI::Broodwar->getGeysers());
     if (!geyser) { return; }
@@ -131,7 +130,7 @@ void GameManager::followStrategy(std::vector<std::pair<BWAPI::UnitType, int>> st
     }
 }
 
-std::vector<std::pair<BWAPI::UnitType, int>> GameManager::balancedStrategy()
+void GameManager::balancedStrategy()
 {
     std::vector<std::pair<BWAPI::UnitType, int>> strat = std::vector<std::pair<BWAPI::UnitType, int>>();
     
@@ -140,27 +139,16 @@ std::vector<std::pair<BWAPI::UnitType, int>> GameManager::balancedStrategy()
         strat.push_back(std::pair<BWAPI::UnitType, int>(type, count));
     };
 
-    add(BWAPI::UnitTypes::Protoss_Forge, 1);
     add(BWAPI::UnitTypes::Protoss_Pylon, 1);
+    add(BWAPI::UnitTypes::Protoss_Forge, 1);
+    add(BWAPI::UnitTypes::Protoss_Gateway, 1);
+    add(BWAPI::UnitTypes::Protoss_Zealot, 20);
+    add(BWAPI::UnitTypes::Protoss_Dragoon, 10);
 
-    return strat;
-}
-
-void GameManager::rally()
-{
-    std::vector<int> chokePoints = InformationManager::Instance().getBases()[0].getChokePoints();
-    if (chokePoints.empty()) { return; }
-
-    BWAPI::Position chokePoint = BWAPI::Broodwar->getRegion(chokePoints[0])->getCenter();
-    if (!chokePoint) { return; }
-
-    for (BWAPI::Unit unit : BWAPI::Broodwar->self()->getUnits())
+    if (InformationManager::Instance().getMinerals() >= 1000 && InformationManager::Instance().getMinerals() <= 1500)
     {
-        if (!unit) { continue; }
-
-        if (!unit->exists() || !unit->isCompleted() || unit->getType().isResourceDepot() || unit->getType().isWorker() || !unit->canSetRallyPosition()) { continue; }
-
-        if (unit->getRallyPosition() == chokePoint) { continue; }
-        unit->setRallyPoint(chokePoint);
+        add(BWAPI::UnitTypes::Protoss_Gateway, 1);
     }
+
+    GameManager::followStrategy(strat);
 }
