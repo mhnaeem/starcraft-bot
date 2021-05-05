@@ -95,6 +95,7 @@ void StarterBot::onSendText(std::string text)
 void StarterBot::onUnitCreate(BWAPI::Unit unit)
 { 
     BuildManager::Instance().onCreate(unit);
+    UnitManager::Instance().onCreate(unit);
 }
 
 // Called whenever a unit finished construction, with a pointer to the unit

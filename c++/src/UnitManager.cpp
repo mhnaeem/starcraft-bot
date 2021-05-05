@@ -26,7 +26,7 @@ void UnitManager::onFrame()
 {
 	idleWorkersCollectMinerals();
 	runOrders();
-	printInfo();
+	//printInfo();
 }
 
 void UnitManager::runOrders()
@@ -53,6 +53,12 @@ void UnitManager::runOrders()
 			break;
 		case UnitOrder::CAMP:
 			camp(unit);
+			break;
+		case UnitOrder::RALLY:
+			rally(unit);
+			break;
+		case UnitOrder::CAMP_MOVE:
+			camp(unit, true);
 			break;
 		default:
 			break;
@@ -325,8 +331,9 @@ void UnitManager::attack()
 	}
 }
 
-void UnitManager::camp(BWAPI::Unit unit)
+void UnitManager::camp(BWAPI::Unit unit, bool move)
 {
+
 	auto useFallbackPosition = [&]()
 	{
 		std::vector<BaseManager> enemyBases = InformationManager::Instance().getEnemyBases();
@@ -336,6 +343,14 @@ void UnitManager::camp(BWAPI::Unit unit)
 	};
 
 	if (!unit || !unit->exists() || !unit->isCompleted()) { return; }
+
+	if (move)
+	{
+		SmartUtils::SmartStop(unit);
+		m_unitOrders[unit->getID()] = UnitOrder::CAMP;
+		return;
+	}
+
 
 	if (m_centerPosition == BWAPI::Positions::Invalid)
 	{
@@ -524,4 +539,29 @@ void UnitManager::printInfo()
 
 		std::cout << u->getID() << " " << u->getLastCommand().getType().getName() << " " << u->getLastCommand().getUnitType().getName() << " " << x << "\n";
 	}
+}
+
+void UnitManager::rally(BWAPI::Unit unit)
+{
+	if (!unit || !unit->exists() || !unit->isCompleted() || unit->getType().isResourceDepot() || unit->getType().isWorker() || !unit->canSetRallyPosition()) { return; }
+
+	std::vector<BaseManager> bases = InformationManager::Instance().getBases();
+	if (bases.empty()) { return; }
+
+	std::vector<int> chokePoints = bases[0].getChokePoints();
+	if (chokePoints.empty()) { return; }
+
+	BWAPI::Position chokePoint = BWAPI::Broodwar->getRegion(chokePoints[0])->getCenter();
+	if (!chokePoint) { return; }
+
+	if (unit->getRallyPosition() == chokePoint) { return; }
+
+	unit->setRallyPoint(chokePoint);
+}
+
+void UnitManager::onCreate(BWAPI::Unit unit)
+{
+	if (!unit || !unit->exists() || !unit->isCompleted() || unit->getType().isResourceDepot() || unit->getType().isWorker() || !unit->canSetRallyPosition()) { return; }
+
+	m_unitOrders[unit->getID()] = UnitOrder::RALLY;
 }

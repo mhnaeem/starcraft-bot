@@ -115,7 +115,7 @@ void BuildManager::onCreate(BWAPI::Unit unit)
 	UnitOrder order = UnitOrder::COLLECT_MINERALS;
 	if (UnitManager::Instance().isCamper(builder))
 	{
-		order = UnitOrder::CAMP;
+		order = UnitOrder::CAMP_MOVE;
 	}
 	UnitManager::Instance().setOrder(builder, order);
 }
