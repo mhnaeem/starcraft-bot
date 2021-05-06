@@ -453,7 +453,8 @@ void UnitManager::camp(BWAPI::Unit unit, bool move)
 
 	int numOfCannons = InformationManager::Instance().getCountOfType(BWAPI::UnitTypes::Protoss_Photon_Cannon);
 	int numOfPylons = InformationManager::Instance().getCountOfType(BWAPI::UnitTypes::Protoss_Pylon);
-	if (numOfCannons % 5 == 0 && numOfCannons > 0 && (numOfCannons - numOfPylons) >= 3)
+	int ans = (numOfCannons / numOfPylons) % 5;
+	if (numOfCannons > 0 && ans == 1)
 	{
 		BuildManager::Instance().Build(pylon->getPosition(), unit, BWAPI::UnitTypes::Protoss_Pylon);
 		return;
@@ -461,6 +462,7 @@ void UnitManager::camp(BWAPI::Unit unit, bool move)
 
 	BuildManager::Instance().Build(pylon->getPosition(), unit, BWAPI::UnitTypes::Protoss_Photon_Cannon);
 }
+
 
 BWAPI::Unit UnitManager::getBuildUnit(BWAPI::UnitType builderType, UnitOrder order)
 {
@@ -617,8 +619,6 @@ void UnitManager::onCreate(BWAPI::Unit unit)
 
 void UnitManager::replenishCampers()
 {
-	std::cout << "Size: " << m_campers.size() << "\n";
-
 	if (InformationManager::Instance().getEnemyBases().empty()) { return; }
 
 	if (m_campers.empty())
