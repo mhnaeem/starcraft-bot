@@ -25,6 +25,8 @@ class UnitManager
 	double								  m_scoutConfusionAngle = 30.0;
 	BWAPI::Position                       m_centerPosition = BWAPI::Positions::Invalid;
 	std::map<BWAPI::TilePosition, int>    m_enroute;
+	int									  m_cornerIndex = 0;
+	std::vector<std::pair<int, int>>      m_cornerLocations = { std::make_pair<int,int>(240,240),std::make_pair<int,int>(-240,240),std::make_pair<int,int>(-240,-240),std::make_pair<int,int>(240,-240) };
 
 	UnitManager();
 

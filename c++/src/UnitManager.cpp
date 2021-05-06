@@ -21,6 +21,7 @@ void UnitManager::onStart()
 	m_campers.clear();
 	m_enroute.clear();
 	m_scoutConfusionAngle = 30.0;
+	m_cornerIndex = 0;
 	setupScouts();
 }
 
@@ -144,7 +145,7 @@ void UnitManager::setupScouts()
 			scoutCount++;
 		}
 
-		if (scoutCount == 2)
+		if (scoutCount == ( BWAPI::Broodwar->getStartLocations().size() -1 ))
 		{
 			break;
 		}
@@ -172,6 +173,16 @@ void UnitManager::performScoutConfusionMicro(BWAPI::Unit scout)
 		return false;
 	};
 
+	auto const getNextPosition = [&]()
+	{
+		auto rv = m_cornerLocations[m_cornerIndex];
+		m_cornerIndex = (m_cornerIndex + 1) % m_cornerLocations.size();
+		auto enemyCenterLocation = enemyCenterLocations[0].getLocation();
+		enemyCenterLocation.x += rv.first;
+		enemyCenterLocation.y += rv.second;
+		return enemyCenterLocation;
+	};
+
 	auto const getNewPos = [&](double angle, int radius) {
 		double radians = angle * 3.14 / 180;
 		int newX = enemyCenterLocations[0].getLocation().x + (std::cos(radians) * radius);
@@ -182,35 +193,33 @@ void UnitManager::performScoutConfusionMicro(BWAPI::Unit scout)
 
 	if (scout && scout->exists())
 	{
-		const BWAPI::Unit enemyBase = scout->getUnitsInRadius(1024, BWAPI::Filter::Exists && BWAPI::Filter::IsEnemy && BWAPI::Filter::IsResourceDepot).getClosestUnit();
-
-		if (scout->isUnderAttack() || enemyWorkerInRadius(scout))
+		auto const areEnemyWorkersFollowing = [&]()
 		{
-			BWAPI::Position newPos = getNewPos(m_scoutConfusionAngle, 200);
-			for (size_t i = 0; i < 20; i++)
+			auto enemyWorkers = scout->getUnitsInRadius(2048, BWAPI::Filter::Exists && BWAPI::Filter::IsEnemy && BWAPI::Filter::IsWorker);
+			int workersMiningMinerals = 0;
+			for (auto worker : enemyWorkers)
 			{
-				if (scout->getLastCommand().getTargetPosition() == newPos && scout->getDistance(newPos) >= 60)
+				if (worker->getOrder() != BWAPI::Orders::AttackUnit) 
 				{
-					break;
-				}
-
-				m_scoutConfusionAngle += 45.0;
-				newPos = getNewPos(m_scoutConfusionAngle, 200);
-
-				if (!SmartUtils::HasAttackingEnemies(BWAPI::Broodwar->getRegionAt(newPos.x, newPos.y)))
-				{
-					SmartUtils::SmartMove(scout, newPos);
-					break;
+					workersMiningMinerals += 1;
 				}
 			}
-		}
-		else if (scout->getLastCommand().getType() != BWAPI::UnitCommandTypes::Attack_Unit && enemyBase && scout->hasPath(enemyBase))
+
+			if (enemyWorkers.size() > 0 && (workersMiningMinerals / enemyWorkers.size()) > 0.8)
+			{
+				return false;
+			}
+			return true;
+		};
+		const BWAPI::Unit enemyBase = scout->getUnitsInRadius(1024, BWAPI::Filter::Exists && BWAPI::Filter::IsEnemy && BWAPI::Filter::IsResourceDepot).getClosestUnit();
+		
+		if (!areEnemyWorkersFollowing())
 		{
 			SmartUtils::SmartAttack(scout, enemyBase);
 		}
-		else if (scout->hasPath(enemyCenterLocations[0].getLocation()))
+		else if (!scout->isMoving())
 		{
-			SmartUtils::SmartMove(scout, enemyCenterLocations[0].getLocation());
+			SmartUtils::SmartMove(scout, getNextPosition());
 		}
 	}
 
