@@ -24,6 +24,7 @@ class UnitManager
 	std::set<int>                         m_campers;
 	double								  m_scoutConfusionAngle = 30.0;
 	BWAPI::Position                       m_centerPosition = BWAPI::Positions::Invalid;
+	std::map<BWAPI::TilePosition, int>    m_enroute;
 
 	UnitManager();
 
@@ -59,5 +60,5 @@ public:
 	void          setOrder(int unitID, UnitOrder order);
 	bool          isCamper(int unitID);
 	UnitOrder     getOrder(int unitID);
-	BWAPI::Unit   getBuildUnit(BWAPI::UnitType builderType);
+	BWAPI::Unit   getBuildUnit(BWAPI::UnitType builderType, UnitOrder order = UnitOrder::COLLECT_MINERALS);
 };
