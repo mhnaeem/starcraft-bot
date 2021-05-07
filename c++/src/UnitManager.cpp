@@ -350,7 +350,23 @@ void UnitManager::attack()
 		return false;
 	};
 
-	auto enemyLocation = enemy[0].getLocation();
+	BWAPI::Position enemyLocation = enemy[0].getLocation();
+
+	if (MapTools::Instance().isExplored(enemyLocation))
+	{
+		for (int regionID : enemy[0].getRegions())
+		{
+			BWAPI::Region region = BWAPI::Broodwar->getRegion(regionID);
+			if (!region) { continue; }
+
+			BWAPI::Position newPos = region->getCenter();
+			if (!MapTools::Instance().isExplored(newPos))
+			{
+				enemyLocation = newPos;
+				break;
+			}
+		}
+	}
 
 	for (auto unit : BWAPI::Broodwar->self()->getUnits())
 	{
