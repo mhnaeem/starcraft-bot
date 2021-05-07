@@ -284,6 +284,10 @@ bool UnitManager::collectMinerals(BWAPI::Unit worker)
 	if (bases.empty()) { return false; }
 
 	BWAPI::Unit mineralField = bases[0].getMinerals();
+	if (!mineralField)
+	{
+		mineralField = SmartUtils::GetClosestUnitTo(bases[0].getLocation(), BWAPI::Broodwar->getMinerals());
+	}
 
 	return SmartUtils::SmartRightClick(worker, mineralField);
 }
