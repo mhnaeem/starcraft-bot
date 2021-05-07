@@ -13,6 +13,7 @@ void InformationManager::onStart()
 {
 	m_enemyBases.clear();
 	m_bases.clear();
+	m_camperWorking = false;
 	InformationManager::onFrame();
 }
 
@@ -260,4 +261,14 @@ void InformationManager::addEnemyBase(BWAPI::Position pos)
 void InformationManager::addBase(BaseManager base)
 {
 	m_bases.push_back(base);
+}
+
+bool InformationManager::isCamperWorking()
+{
+	return m_camperWorking;
+}
+
+void InformationManager::setCamperWorking(bool working)
+{
+	m_camperWorking = working;
 }

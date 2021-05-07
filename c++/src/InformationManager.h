@@ -21,6 +21,7 @@ class InformationManager
     int           m_totalSupply;
     int           m_mineral;
     int           m_gas;
+    bool          m_camperWorking;
 
 public:
 
@@ -51,4 +52,6 @@ public:
     int                                      getTotalSupply(bool inProgress = false);
     int                                      getMinerals(bool inProgress = false);
     int                                      getGas(bool inProgress = false);
+    void                                     setCamperWorking(bool working);
+    bool                                     isCamperWorking();
 };

@@ -54,7 +54,7 @@ void GameManager::maintainSupplyCapacity()
     const BWAPI::UnitType supplyProviderType = BWAPI::Broodwar->self()->getRace().getSupplyProvider();
     const int numOfSupplyProviders = InformationManager::Instance().getCountOfType(supplyProviderType);
 
-    if (unusedSupply > 2 && numOfSupplyProviders != 0) { return; }
+    if (unusedSupply > 2 && numOfSupplyProviders != 0 && totalSupplyNow != usedSupply) { return; }
 
     if (totalSupplyNow <= usedSupply)
     {
@@ -116,6 +116,11 @@ void GameManager::followStrategy(std::vector<std::pair<BWAPI::UnitType, int>> st
     for (auto build : strategy)
     {
         BWAPI::UnitType type = build.first;
+        if (type == BWAPI::UnitTypes::Protoss_Gateway && !InformationManager::Instance().isCamperWorking())
+        {
+            return;
+        }
+
         if (InformationManager::Instance().getCountOfType(type) < build.second)
         {
             buildWhatYouCan(type);
@@ -155,7 +160,7 @@ void GameManager::balancedStrategy()
     {
         if (InformationManager::Instance().getCountOfType(BWAPI::UnitTypes::Protoss_Gateway) < 2)
         {
-            add(BWAPI::UnitTypes::Protoss_Gateway, 1);
+            add(BWAPI::UnitTypes::Protoss_Gateway, 2);
         }
 
         if (BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Protoss_Plasma_Shields) <= 1)

@@ -648,6 +648,12 @@ void UnitManager::rally(BWAPI::Unit unit)
 
 void UnitManager::onCreate(BWAPI::Unit unit)
 {
+	if (!unit) { return; }
+
+	if (unit->getType() == BWAPI::UnitTypes::Protoss_Photon_Cannon && !InformationManager::Instance().isCamperWorking())
+	{
+		InformationManager::Instance().setCamperWorking(true);
+	}
 }
 
 void UnitManager::replenishCampers()
