@@ -181,8 +181,20 @@ void UnitManager::performScoutConfusionMicro(BWAPI::Unit scout)
 	if (scout && scout->exists())
 	{
 		const BWAPI::Unit enemyBase = scout->getUnitsInRadius(1024, BWAPI::Filter::Exists && BWAPI::Filter::IsEnemy && BWAPI::Filter::IsResourceDepot).getClosestUnit();
-
-		if (scout->isUnderAttack() || enemyWorkerInRadius(scout))
+		auto const areEnemyWorkersFollowing = [&]()
+		{
+			auto enemyWorkers = scout->getUnitsInRadius(2048, BWAPI::Filter::Exists && BWAPI::Filter::IsEnemy && BWAPI::Filter::IsWorker);
+			int workersMiningMinerals = 0;
+			for (auto worker : enemyWorkers)
+			{
+				if (worker->getOrder() != BWAPI::Orders::AttackUnit)
+				{
+					return false;
+				}
+			}
+			return true;
+		};
+		if (areEnemyWorkersFollowing() || scout->isUnderAttack() || enemyWorkerInRadius(scout))
 		{
 			BWAPI::Position newPos = getNewPos(m_scoutConfusionAngle, 200);
 			for (size_t i = 0; i < 20; i++)
