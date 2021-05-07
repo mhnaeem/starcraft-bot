@@ -157,7 +157,7 @@ void GameManager::balancedStrategy()
             SmartUtils::SmartUpgrade(BWAPI::UpgradeTypes::Protoss_Plasma_Shields);
         }
 
-        if (BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Singularity_Charge) <= 1)
+        if (BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Singularity_Charge) < 1)
         {
             SmartUtils::SmartUpgrade(BWAPI::UpgradeTypes::Singularity_Charge);
         }
