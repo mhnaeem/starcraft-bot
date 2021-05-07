@@ -23,6 +23,7 @@ public:
     void                           onStart();
     void                           onFrame();
     void                           onCreate(BWAPI::Unit unit);
+    void                           purgeCamper();
     bool                           Build(BaseManager* baseManager, BWAPI::UnitType type);
     bool                           Build(BWAPI::Position pos, BWAPI::UnitType type);
     bool                           Build(BWAPI::Position pos, BWAPI::Unit builder, BWAPI::UnitType type);

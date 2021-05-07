@@ -146,6 +146,35 @@ void BuildManager::trackBuilds()
 	}
 }
 
+void BuildManager::purgeCamper()
+{
+	std::vector<BWAPI::UnitType> toRemove;
+
+	std::map<BWAPI::UnitType, int>::iterator it;
+	for (it = m_buildingsInProgress.begin(); it != m_buildingsInProgress.end(); it++)
+	{
+		if (!it->first) { continue; }
+
+		BWAPI::Unit unit = BWAPI::Broodwar->getUnit(it->second);
+
+		if (!unit) { continue; }
+
+		const int unitID = unit->getID();
+
+		if (UnitManager::Instance().isCamper(unitID))
+		{
+			UnitManager::Instance().setOrder(unitID, UnitOrder::CAMP);
+			toRemove.push_back(it->first);
+			continue;
+		}
+	}
+
+	for (BWAPI::UnitType item : toRemove)
+	{
+		m_buildingsInProgress.erase(item);
+	}
+};
+
 std::set<BWAPI::UnitType> BuildManager::BuildingsNeeded(BWAPI::UnitType building)
 {
 	std::set<BWAPI::UnitType> set = std::set<BWAPI::UnitType>();

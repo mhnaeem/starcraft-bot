@@ -47,6 +47,7 @@ void GameManager::onFrame()
 void GameManager::maintainSupplyCapacity()
 {
     const int totalSupply = InformationManager::Instance().getTotalSupply(true);
+    const int totalSupplyNow = InformationManager::Instance().getTotalSupply(false);
     const int usedSupply = InformationManager::Instance().usedSupply();
     const int unusedSupply = totalSupply - usedSupply;
 
@@ -54,6 +55,11 @@ void GameManager::maintainSupplyCapacity()
     const int numOfSupplyProviders = InformationManager::Instance().getCountOfType(supplyProviderType);
 
     if (unusedSupply > 2 && numOfSupplyProviders != 0) { return; }
+
+    if (totalSupplyNow <= usedSupply)
+    {
+        BuildManager::Instance().purgeCamper();
+    }
 
     BuildManager::Instance().Build(supplyProviderType);
 }
