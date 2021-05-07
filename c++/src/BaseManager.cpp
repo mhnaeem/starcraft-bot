@@ -105,7 +105,7 @@ void BaseManager::updateChokePoints()
 
 	std::vector<std::pair<int, int>> cpPoints;
 
-	auto hasMinerals = [&](BWAPI::Region region)
+	auto hasResources = [&](BWAPI::Region region)
 	{
 		if (!region) { return false; }
 
@@ -113,7 +113,8 @@ void BaseManager::updateChokePoints()
 		{
 			if (!u) { continue; }
 
-			if (u->getType().isMineralField())
+			BWAPI::UnitType type = u->getType();
+			if (type.isMineralField() || type.isRefinery() || type == BWAPI::UnitTypes::Resource_Vespene_Geyser)
 			{
 				return true;
 			}
@@ -130,9 +131,9 @@ void BaseManager::updateChokePoints()
 
 		for (BWAPI::Region r : region->getNeighbors())
 		{
-			if (hasMinerals(r))
+			if (hasResources(r))
 			{
-				defensePoints--;
+				defensePoints -= 1;
 				continue;
 			}
 			defensePoints += r->getDefensePriority() == 0 ? 1 : r->getDefensePriority();
