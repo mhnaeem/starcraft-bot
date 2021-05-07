@@ -105,6 +105,22 @@ void BaseManager::updateChokePoints()
 
 	std::vector<std::pair<int, int>> cpPoints;
 
+	auto hasMinerals = [&](BWAPI::Region region)
+	{
+		if (!region) { return false; }
+
+		for (BWAPI::Unit u : region->getUnits())
+		{
+			if (!u) { continue; }
+
+			if (u->getType().isMineralField())
+			{
+				return true;
+			}
+		}
+		return false;
+	};
+
 	auto calculateDefensePointsForChokePoint = [&](BWAPI::Region region)
 	{
 		int defensePoints = 0;
@@ -114,6 +130,11 @@ void BaseManager::updateChokePoints()
 
 		for (BWAPI::Region r : region->getNeighbors())
 		{
+			if (hasMinerals(r))
+			{
+				defensePoints--;
+				continue;
+			}
 			defensePoints += r->getDefensePriority() == 0 ? 1 : r->getDefensePriority();
 		}
 
