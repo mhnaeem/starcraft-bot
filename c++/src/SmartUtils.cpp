@@ -202,3 +202,37 @@ bool SmartUtils::SmartTrain(BWAPI::UnitType type, BWAPI::Unit target)
 
 	return train;
 }
+
+bool SmartUtils::SmartUpgrade(BWAPI::UpgradeType type)
+{
+	if (!type) { return false; }
+
+	if (!InformationManager::Instance().hasEnoughResources(type)) { return false; }
+
+	const BWAPI::UnitType whatUpgrades = type.whatUpgrades();
+	BWAPI::Unit buildingNeeded = nullptr;
+
+	for (BWAPI::Unit unit : BWAPI::Broodwar->self()->getUnits())
+	{
+		if (!unit) { continue; }
+
+		if (!unit->exists() || !unit->isCompleted() || unit->isUpgrading()) { continue; }
+
+		if (unit->getType() == whatUpgrades)
+		{
+			buildingNeeded = unit;
+			break;
+		}
+	}
+
+	if (!buildingNeeded) { return false; }
+
+	bool upgrade = buildingNeeded->upgrade(type);
+	if (upgrade)
+	{
+		InformationManager::Instance().deductResources(type);
+	}
+	BWAPI::Broodwar->printf("%s %s", upgrade ? "Started Upgrading" : "Couldn't Upgrade", type.getName().c_str());
+
+	return upgrade;
+}

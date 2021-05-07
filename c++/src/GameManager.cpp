@@ -145,9 +145,17 @@ void GameManager::balancedStrategy()
     add(BWAPI::UnitTypes::Protoss_Zealot, 20);
     add(BWAPI::UnitTypes::Protoss_Dragoon, 10);
 
-    if (InformationManager::Instance().getMinerals() >= 1000 && InformationManager::Instance().getMinerals() <= 1500)
+    if (InformationManager::Instance().getMinerals() >= 500)
     {
-        add(BWAPI::UnitTypes::Protoss_Gateway, 1);
+        if (InformationManager::Instance().getCountOfType(BWAPI::UnitTypes::Protoss_Gateway) < 2)
+        {
+            add(BWAPI::UnitTypes::Protoss_Gateway, 1);
+        }
+
+        if (BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Protoss_Plasma_Shields) < 1)
+        {
+            SmartUtils::SmartUpgrade(BWAPI::UpgradeTypes::Protoss_Plasma_Shields);
+        }
     }
 
     GameManager::followStrategy(strat);
