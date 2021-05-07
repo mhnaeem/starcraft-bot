@@ -103,27 +103,77 @@ void BaseManager::updateChokePoints()
 {
 	m_chokePoints.clear();
 
-	auto updateChokePointsWithXNeighbours = [&](int neighbours)
-	{
-		for (int regionID : m_regions)
-		{
-			BWAPI::Region region = BWAPI::Broodwar->getRegion(regionID);
-			if (!region) { continue; }
+	std::vector<std::pair<int, int>> cpPoints;
 
-			if (region->getDefensePriority() == 2 && region->getNeighbors().size() >= neighbours)
+	auto hasMinerals = [&](BWAPI::Region region)
+	{
+		if (!region) { return false; }
+
+		for (BWAPI::Unit u : region->getUnits())
+		{
+			if (!u) { continue; }
+
+			if (u->getType().isMineralField())
 			{
-				m_chokePoints.push_back(regionID);
+				return true;
 			}
 		}
+		return false;
 	};
 
-	int i = 7;
-	while (m_chokePoints.empty())
+	auto calculateDefensePointsForChokePoint = [&](BWAPI::Region region)
 	{
-		i--;
-		if (i == 0) { break; }
-		updateChokePointsWithXNeighbours(i);
+		int defensePoints = 0;
+		if (!region) { return defensePoints; }
+
+		defensePoints += region->getDefensePriority() == 0 ? 1 : region->getDefensePriority();
+
+		for (BWAPI::Region r : region->getNeighbors())
+		{
+			if (hasMinerals(r))
+			{
+				defensePoints--;
+				continue;
+			}
+			defensePoints += r->getDefensePriority() == 0 ? 1 : r->getDefensePriority();
+		}
+
+		return defensePoints;
+	};
+
+	for (int regionID : m_regions)
+	{
+		BWAPI::Region region = BWAPI::Broodwar->getRegion(regionID);
+		if (!region) { continue; }
+
+		if (region->getDefensePriority() == 2)
+		{
+			cpPoints.push_back(std::pair<int, int>(region->getID(), calculateDefensePointsForChokePoint(region)));
+		}
 	}
+
+	if (cpPoints.empty())
+	{
+		if (!m_regions.empty())
+		{
+			m_chokePoints.push_back(m_regions[0]);
+		}
+	}
+	else
+	{
+		std::sort(cpPoints.begin(), cpPoints.end(), [](auto& left, auto& right) {
+			return left.second > right.second;
+		});
+
+		for (auto cp : cpPoints)
+		{
+			BWAPI::Region r = BWAPI::Broodwar->getRegion(cp.first);
+			if (!r) { continue; }
+
+			m_chokePoints.push_back(cp.first);
+		}
+	}
+
 }
 
 void BaseManager::updateUnits()
