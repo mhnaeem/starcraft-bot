@@ -10,9 +10,6 @@
 
 UnitManager::UnitManager()
 {
-	m_unitOrders = std::map<int, UnitOrder>();
-	m_campers = std::set<int>();
-	m_enroute = std::map<BWAPI::TilePosition, int>();
 }
 
 void UnitManager::onStart()
@@ -21,6 +18,7 @@ void UnitManager::onStart()
 	m_campers.clear();
 	m_enroute.clear();
 	m_scoutConfusionAngle = 30.0;
+	m_centerPosition = BWAPI::Positions::Invalid;
 	setupScouts();
 }
 

@@ -11,9 +11,9 @@
 BaseManager::BaseManager(BWAPI::Position baseLocation)
 {
 	m_baseLocation = baseLocation;
-	m_regions = std::vector<int>();
-	m_chokePoints = std::vector<int>();
-	m_units = std::set<int>();
+	m_regions.clear();
+	m_chokePoints.clear();
+	m_units.clear();
 	m_minerals = SmartUtils::GetClosestUnitTo(baseLocation, BWAPI::Broodwar->getMinerals());
 	m_gas = SmartUtils::GetClosestUnitTo(baseLocation, BWAPI::Broodwar->getGeysers());
 
