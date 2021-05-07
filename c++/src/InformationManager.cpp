@@ -11,10 +11,8 @@ InformationManager::InformationManager()
 
 void InformationManager::onStart()
 {
-	m_enemyBases = std::vector<BaseManager>();
-	m_bases = std::vector<BaseManager>();
-	m_unitCountMap = std::map<BWAPI::UnitType, int>();
-	m_unitsMap = std::map<BWAPI::UnitType, std::vector<int>>();
+	m_enemyBases.clear();
+	m_bases.clear();
 	InformationManager::onFrame();
 }
 
@@ -64,7 +62,7 @@ void InformationManager::parseUnitsInfo()
 	m_unitsMap.clear();
 	m_unitCountMap.clear();
 
-	BWAPI::Unitset myUnits = m_player->getUnits();
+	BWAPI::Unitset myUnits = BWAPI::Broodwar->self()->getUnits();
 	for (BWAPI::Unit unit : myUnits)
 	{
 		if (!unit) { continue; }

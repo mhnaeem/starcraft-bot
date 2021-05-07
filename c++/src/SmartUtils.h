@@ -13,6 +13,7 @@ namespace SmartUtils
 	bool              SmartRightClick(BWAPI::Unit unit, BWAPI::Unit target);
 	bool              SmartTrain(BWAPI::UnitType type);
 	bool              SmartTrain(BWAPI::UnitType type, BWAPI::Unit target);
+	bool              SmartUpgrade(BWAPI::UpgradeType type);
 	bool              HasAttackingEnemies(BWAPI::Region region);
 	BWAPI::Unitset    SmartDetectEnemy(BWAPI::Unit unit);
 	BWAPI::Unitset    SmartDetectEnemy(int range, BWAPI::Unit unit);

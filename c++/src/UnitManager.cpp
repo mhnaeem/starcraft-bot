@@ -10,9 +10,6 @@
 
 UnitManager::UnitManager()
 {
-	m_unitOrders = std::map<int, UnitOrder>();
-	m_campers = std::set<int>();
-	m_enroute = std::map<BWAPI::TilePosition, int>();
 }
 
 void UnitManager::onStart()
@@ -21,6 +18,7 @@ void UnitManager::onStart()
 	m_campers.clear();
 	m_enroute.clear();
 	m_scoutConfusionAngle = 30.0;
+	m_centerPosition = BWAPI::Positions::Invalid;
 	m_cornerIndex = 0;
 	setupScouts();
 }
@@ -295,6 +293,10 @@ bool UnitManager::collectMinerals(BWAPI::Unit worker)
 	if (bases.empty()) { return false; }
 
 	BWAPI::Unit mineralField = bases[0].getMinerals();
+	if (!mineralField)
+	{
+		mineralField = SmartUtils::GetClosestUnitTo(bases[0].getLocation(), BWAPI::Broodwar->getMinerals());
+	}
 
 	return SmartUtils::SmartRightClick(worker, mineralField);
 }
@@ -435,22 +437,30 @@ void UnitManager::camp(BWAPI::Unit unit, bool move)
 		return;
 	}
 
-	BWAPI::Unit pylon = nullptr;
-	BWAPI::Unitset units = unit->getUnitsInRadius(300);
-	for (BWAPI::Unit u : units)
-	{
-		if (!u) { continue; }
+	std::map<BWAPI::UnitType, int> unitCount;
+	BWAPI::Unitset units = unit->getUnitsInRadius(400);
 
-		if (u->getType() == BWAPI::UnitTypes::Protoss_Pylon)
+	for (BWAPI::Unit unit : units)
+	{
+		if (!unit || !unit->exists()) { continue; }
+
+		const BWAPI::UnitType type = unit->getType();
+
+		try
 		{
-			pylon = u;
-			break;
+			unitCount.at(type) += 1;
+		}
+		catch (const std::out_of_range&)
+		{
+			unitCount[type] = 1;
 		}
 	}
 
-	if (!pylon)
-	{
-		BuildManager::Instance().Build(unit->getPosition(), unit, BWAPI::UnitTypes::Protoss_Pylon);
+	BWAPI::UnitType pylon = BWAPI::UnitTypes::Protoss_Pylon;
+	BWAPI::UnitType cannon = BWAPI::UnitTypes::Protoss_Photon_Cannon;
+
+	if (unitCount.find(pylon) == unitCount.end()) {
+		BuildManager::Instance().Build(unit->getPosition(), unit, pylon);
 		return;
 	}
 
@@ -460,16 +470,27 @@ void UnitManager::camp(BWAPI::Unit unit, bool move)
 		return;
 	}
 
-	int numOfCannons = InformationManager::Instance().getCountOfType(BWAPI::UnitTypes::Protoss_Photon_Cannon);
-	int numOfPylons = InformationManager::Instance().getCountOfType(BWAPI::UnitTypes::Protoss_Pylon);
-	int ans = (numOfCannons / numOfPylons) % 5;
-	if (numOfCannons > 0 && ans == 1)
+	int numOfCannons = 0;
+	int numOfPylons = 0;
+
+	if (unitCount.find(cannon) != unitCount.end())
 	{
-		BuildManager::Instance().Build(pylon->getPosition(), unit, BWAPI::UnitTypes::Protoss_Pylon);
+		numOfCannons = unitCount[cannon];
+	}
+
+	if (unitCount.find(pylon) != unitCount.end())
+	{
+		numOfPylons = unitCount[pylon];
+	}
+
+	int ans = numOfCannons % numOfPylons;
+	if (numOfCannons > 0 && numOfCannons % 5 == 0 && ans == 0)
+	{
+		BuildManager::Instance().Build(unit->getPosition(), unit, pylon);
 		return;
 	}
 
-	BuildManager::Instance().Build(pylon->getPosition(), unit, BWAPI::UnitTypes::Protoss_Photon_Cannon);
+	BuildManager::Instance().Build(unit->getPosition(), unit, cannon);
 }
 
 

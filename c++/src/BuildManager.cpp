@@ -6,7 +6,6 @@
 
 BuildManager::BuildManager()
 {
-	m_buildingsInProgress = std::map<BWAPI::UnitType, int>();
 }
 
 void BuildManager::onStart()
